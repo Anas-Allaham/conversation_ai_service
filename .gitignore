@@ -1,0 +1,33 @@
+# Virtual Environments (Massive folder, never upload this)
+venv/
+env/
+.env_venv/
+
+venv/
+.env
+*.wav
+*.mp3
+
+# Audio Recordings (Generated during runtime)
+recordings/
+*.wav
+*.mp3
+*.flac
+
+# Downloaded AI Models (Whisper, Piper, Silero)
+*.pt
+*.bin
+*.onnx
+.cache/
+huggingface/
+models/
+
+# Security: NEVER upload your API keys!
+.env
+
+# Python specific files (Unnecessary cache files)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
