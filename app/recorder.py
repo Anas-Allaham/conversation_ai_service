@@ -17,7 +17,7 @@ def record_audio(filename="recordings/input.wav"):
     Records audio from microphone and saves as WAV file.
     """
 
-    print("Listening... Speak now.")
+    print("Listening... S peak now.")
 
     # Record audio
     audio = sd.rec(
