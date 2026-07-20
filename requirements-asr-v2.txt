@@ -2,3 +2,10 @@ deepgram-sdk>=7.5.0,<8.0.0
 google-genai>=2.3.0,<3.0.0
 python-dotenv>=1.0.0,<2.0.0
 sounddevice>=0.5.0,<1.0.0
+
+livekit-agents[deepgram,google,silero]>=1.6.5,<1.7.0
+python-dotenv>=1.0.0,<2.0.0
+
+soundfile>=0.12.1,<1.0.0
+livekit-plugins-ai-coustics==0.3.0
+

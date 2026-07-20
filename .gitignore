@@ -35,3 +35,9 @@ __pycache__/
 
 .vscode/
 .idea/
+
+.env
+.env.local
+
+tools/livekit-noise-canceller/
+samples/
