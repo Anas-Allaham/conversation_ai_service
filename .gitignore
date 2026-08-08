@@ -41,3 +41,12 @@ __pycache__/
 
 tools/livekit-noise-canceller/
 samples/
+
+.pytest_cache/
+.coverage
+htmlcov/
+data/*.db
+data/audio/
+pilot/recordings/
+dist/
+build/

@@ -1,0 +1,23 @@
+Metadata-Version: 2.4
+Name: realtime-english-tutor-assessment
+Version: 0.1.0
+Summary: CEFR-aligned adaptive oral placement assessment for the real-time English tutor
+Requires-Python: <3.14,>=3.11
+Requires-Dist: fastapi<1.0,>=0.116
+Requires-Dist: uvicorn[standard]<1.0,>=0.35
+Requires-Dist: pydantic<3.0,>=2.11
+Requires-Dist: python-dotenv<2.0,>=1.1
+Requires-Dist: python-multipart<1.0,>=0.0.20
+Requires-Dist: cryptography<47,>=45
+Requires-Dist: google-genai<2.0,>=1.29
+Requires-Dist: openai<3.0,>=1.99
+Requires-Dist: psycopg[binary,pool]<4.0,>=3.2
+Requires-Dist: boto3<2.0,>=1.40
+Provides-Extra: livekit
+Requires-Dist: livekit-agents[deepgram,silero]==1.6.6; extra == "livekit"
+Requires-Dist: livekit-plugins-ai-coustics==0.3.0; extra == "livekit"
+Provides-Extra: dev
+Requires-Dist: pytest<9.0,>=8.4; extra == "dev"
+Requires-Dist: pytest-asyncio<2.0,>=1.1; extra == "dev"
+Requires-Dist: httpx<1.0,>=0.28; extra == "dev"
+Requires-Dist: ruff<1.0,>=0.12; extra == "dev"

@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: oral_assessment
+      POSTGRES_USER: assessment
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    volumes:
+      - assessment-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U assessment -d oral_assessment"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  oral-assessment:
+    build: .
+    env_file:
+      - .env
+    environment:
+      ASSESSMENT_DATABASE_URL: postgresql://assessment:${POSTGRES_PASSWORD:-change-me}@postgres:5432/oral_assessment
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health/live')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  assessment-postgres:
+

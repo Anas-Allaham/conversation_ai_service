@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Pronunciation result event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["event_type", "event_id", "occurred_at", "assessment_id", "response_id", "status", "diagnostic"],
+  "properties": {
+    "event_type": {"enum": ["assessment.pronunciation_completed", "assessment.pronunciation_failed"]},
+    "event_id": {"type": "string"},
+    "occurred_at": {"type": "string", "format": "date-time"},
+    "assessment_id": {"type": "string"},
+    "response_id": {"type": "string"},
+    "status": {"enum": ["completed", "failed"]},
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "substitutions", "deletions", "insertions", "feature_accuracy", "feedback", "impact_on_conversational_level"],
+      "properties": {
+        "status": {"enum": ["completed", "failed"]},
+        "phoneme_error_rate": {"type": ["number", "null"], "minimum": 0},
+        "substitutions": {"type": "array", "items": {"type": "object"}},
+        "deletions": {"type": "array", "items": {"type": "string"}},
+        "insertions": {"type": "array", "items": {"type": "string"}},
+        "phonological_similarity": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "feature_accuracy": {"type": "object", "additionalProperties": {"type": "number"}},
+        "feedback": {"type": "array", "items": {"type": "string"}},
+        "impact_on_conversational_level": {"const": "none"},
+        "failure_reason": {"type": ["string", "null"]}
+      }
+    }
+  }
+}
+

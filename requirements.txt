@@ -6,4 +6,6 @@ python-dotenv
 groq
 openai
 pygame
+-e .[livekit]
+
 

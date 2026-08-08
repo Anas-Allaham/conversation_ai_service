@@ -1,1 +1,2 @@
-"""Real-time conversation pipeline modules."""
+"""LiveKit voice-agent adapters."""
+

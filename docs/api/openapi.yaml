@@ -1,0 +1,1207 @@
+openapi: 3.1.0
+info:
+  title: Oral Assessment Service
+  description: Original CEFR-aligned adaptive oral placement service. This service
+    reports a conversational interaction profile and does not issue official CEFR
+    certification.
+  version: 0.2.0
+paths:
+  /health/live:
+    get: 
+      summary: Health Live
+      operationId: health_live_health_live_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Health Live Health Live Get
+  /health/ready:
+    get:
+      summary: Health Ready
+      operationId: health_ready_health_ready_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Health Ready Health Ready Get
+  /metrics:
+    get:
+      summary: Metrics
+      operationId: metrics_metrics_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            text/plain:
+              schema:
+                type: string
+  /v1/assessments:
+    post:
+      summary: Create Assessment
+      operationId: create_assessment_v1_assessments_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssessmentCreateRequest'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentCreateResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/assessments/{assessment_id}:
+    get:
+      summary: Get Assessment State
+      operationId: get_assessment_state_v1_assessments__assessment_id__get
+      parameters:
+      - name: assessment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Assessment Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentStateResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/assessments/{assessment_id}/responses:
+    post:
+      summary: Submit Response
+      operationId: submit_response_v1_assessments__assessment_id__responses_post
+      parameters:
+      - name: assessment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Assessment Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResponseSubmission'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseResult'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/assessments/{assessment_id}/audio/{response_id}:
+    post:
+      summary: Upload Original Audio
+      operationId: upload_original_audio_v1_assessments__assessment_id__audio__response_id__post
+      parameters:
+      - name: assessment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Assessment Id
+      - name: response_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Response Id
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_upload_original_audio_v1_assessments__assessment_id__audio__response_id__post'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AudioUploadResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/assessments/{assessment_id}/result:
+    get:
+      summary: Get Result
+      operationId: get_result_v1_assessments__assessment_id__result_get
+      parameters:
+      - name: assessment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Assessment Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentResult'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/assessments/{assessment_id}/evidence:
+    get:
+      summary: Get Assessment Evidence
+      description: Return auditable scoring evidence for the application/backend team.
+      operationId: get_assessment_evidence_v1_assessments__assessment_id__evidence_get
+      parameters:
+      - name: assessment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Assessment Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentEvidenceResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/assessments/{assessment_id}/cancel:
+    post:
+      summary: Cancel Assessment
+      operationId: cancel_assessment_v1_assessments__assessment_id__cancel_post
+      parameters:
+      - name: assessment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Assessment Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/pronunciation/callback:
+    post:
+      summary: Pronunciation Callback
+      operationId: pronunciation_callback_v1_pronunciation_callback_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PronunciationResultEvent'
+        required: true
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/admin/versions/activate:
+    post:
+      summary: Activate Version
+      operationId: activate_version_v1_admin_versions_activate_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VersionActivationRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionActivationResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/admin/retention/cleanup:
+    post:
+      summary: Retention Cleanup
+      operationId: retention_cleanup_v1_admin_retention_cleanup_post
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetentionResponse'
+components:
+  schemas:
+    AssessmentCreateRequest:
+      properties:
+        user_id:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: User Id
+        assessment_type:
+          type: string
+          const: conversational-placement
+          title: Assessment Type
+          default: conversational-placement
+        target_range:
+          items:
+            $ref: '#/components/schemas/CEFRLevel'
+          type: array
+          title: Target Range
+        language:
+          type: string
+          const: en
+          title: Language
+          default: en
+        interface_language:
+          type: string
+          enum:
+          - en
+          - ar
+          title: Interface Language
+          default: en
+        form_seed:
+          anyOf:
+          - type: string
+            maxLength: 128
+          - type: 'null'
+          title: Form Seed
+      additionalProperties: false
+      type: object
+      required:
+      - user_id
+      title: AssessmentCreateRequest
+    AssessmentCreateResponse:
+      properties:
+        assessment_id:
+          type: string
+          title: Assessment Id
+        status:
+          $ref: '#/components/schemas/AssessmentStatus'
+        current_item:
+          $ref: '#/components/schemas/CurrentPrompt'
+        assessment_version:
+          type: string
+          title: Assessment Version
+        item_bank_version:
+          type: string
+          title: Item Bank Version
+        progress:
+          $ref: '#/components/schemas/AssessmentProgress'
+      additionalProperties: false
+      type: object
+      required:
+      - assessment_id
+      - status
+      - current_item
+      - assessment_version
+      - item_bank_version
+      - progress
+      title: AssessmentCreateResponse
+    AssessmentEvidenceResponse:
+      properties:
+        assessment_id:
+          type: string
+          title: Assessment Id
+        versions:
+          additionalProperties:
+            type: string
+          type: object
+          title: Versions
+        responses:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Responses
+      additionalProperties: false
+      type: object
+      required:
+      - assessment_id
+      - versions
+      - responses
+      title: AssessmentEvidenceResponse
+    AssessmentProgress:
+      properties:
+        status:
+          $ref: '#/components/schemas/AssessmentStatus'
+        current_section:
+          type: string
+          title: Current Section
+        current_prompt_kind:
+          anyOf:
+          - $ref: '#/components/schemas/PromptKind'
+          - type: 'null'
+        questions_answered:
+          type: integer
+          minimum: 0.0
+          title: Questions Answered
+        confirmed_levels:
+          items:
+            $ref: '#/components/schemas/CEFRLevel'
+          type: array
+          title: Confirmed Levels
+        estimated_questions_remaining_min:
+          type: integer
+          minimum: 0.0
+          title: Estimated Questions Remaining Min
+        estimated_questions_remaining_max:
+          type: integer
+          minimum: 0.0
+          title: Estimated Questions Remaining Max
+        adaptive_length:
+          type: boolean
+          const: true
+          title: Adaptive Length
+          default: true
+        display_text:
+          type: string
+          title: Display Text
+      additionalProperties: false
+      type: object
+      required:
+      - status
+      - current_section
+      - current_prompt_kind
+      - questions_answered
+      - estimated_questions_remaining_min
+      - estimated_questions_remaining_max
+      - display_text
+      title: AssessmentProgress
+    AssessmentRecord:
+      properties:
+        assessment_id:
+          type: string
+          title: Assessment Id
+        user_id:
+          type: string
+          title: User Id
+        status:
+          $ref: '#/components/schemas/AssessmentStatus'
+        current_level_index:
+          type: integer
+          maximum: 4.0
+          minimum: 0.0
+          title: Current Level Index
+        current_item_id:
+          type: string
+          title: Current Item Id
+        current_prompt_kind:
+          $ref: '#/components/schemas/PromptKind'
+        current_prompt_id:
+          type: string
+          title: Current Prompt Id
+        highest_confirmed_level:
+          anyOf:
+          - $ref: '#/components/schemas/CEFRLevel'
+          - type: 'null'
+        first_unconfirmed_level:
+          anyOf:
+          - $ref: '#/components/schemas/CEFRLevel'
+          - type: 'null'
+        provisional_unconfirmed_level:
+          anyOf:
+          - $ref: '#/components/schemas/CEFRLevel'
+          - type: 'null'
+        early_boundary_verification_used:
+          type: boolean
+          title: Early Boundary Verification Used
+          default: false
+        boundary_verification_levels:
+          items:
+            $ref: '#/components/schemas/CEFRLevel'
+          type: array
+          title: Boundary Verification Levels
+        form_seed:
+          type: string
+          title: Form Seed
+        invalid_audio_count:
+          type: integer
+          title: Invalid Audio Count
+          default: 0
+        tie_breaker_count:
+          type: integer
+          title: Tie Breaker Count
+          default: 0
+        evaluator_failure_count:
+          type: integer
+          title: Evaluator Failure Count
+          default: 0
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+        completed_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Completed At
+        versions:
+          $ref: '#/components/schemas/VersionSet'
+        interface_language:
+          type: string
+          title: Interface Language
+          default: en
+        revision:
+          type: integer
+          minimum: 0.0
+          title: Revision
+          default: 0
+        completion_reason:
+          type: string
+          title: Completion Reason
+          default: ''
+      additionalProperties: false
+      type: object
+      required:
+      - assessment_id
+      - user_id
+      - status
+      - current_level_index
+      - current_item_id
+      - current_prompt_kind
+      - current_prompt_id
+      - form_seed
+      - created_at
+      - updated_at
+      - versions
+      title: AssessmentRecord
+    AssessmentResult:
+      properties:
+        assessment_id:
+          type: string
+          title: Assessment Id
+        status:
+          $ref: '#/components/schemas/AssessmentStatus'
+        result_name:
+          type: string
+          const: CEFR-aligned Conversational Interaction Placement
+          title: Result Name
+        confirmed_level:
+          anyOf:
+          - $ref: '#/components/schemas/CEFRLevel'
+          - type: string
+            enum:
+            - Pre-A1
+            - Not determined
+          title: Confirmed Level
+        first_unconfirmed_level:
+          anyOf:
+          - $ref: '#/components/schemas/CEFRLevel'
+          - type: 'null'
+        ceiling_reached:
+          type: boolean
+          title: Ceiling Reached
+        confidence:
+          $ref: '#/components/schemas/ResultConfidence'
+        confidence_score:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Confidence Score
+        confidence_score_interpretation:
+          type: string
+          title: Confidence Score Interpretation
+        profile:
+          additionalProperties:
+            anyOf:
+            - $ref: '#/components/schemas/CEFRLevel'
+            - type: string
+              enum:
+              - Pre-A1
+              - Not determined
+          type: object
+          title: Profile
+        profile_scores_percent:
+          additionalProperties:
+            type: integer
+          type: object
+          title: Profile Scores Percent
+        next_level_result:
+          type: string
+          title: Next Level Result
+        summary:
+          type: string
+          title: Summary
+        statistics:
+          $ref: '#/components/schemas/AssessmentStatistics'
+        grammar_assessed:
+          type: boolean
+          const: false
+          title: Grammar Assessed
+          default: false
+        pronunciation_diagnostic:
+          $ref: '#/components/schemas/PronunciationDiagnostic'
+        versions:
+          $ref: '#/components/schemas/VersionSet'
+        disclaimer:
+          type: string
+          title: Disclaimer
+        validity_warnings:
+          items:
+            type: string
+          type: array
+          title: Validity Warnings
+        completed_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Completed At
+        completion_reason:
+          type: string
+          title: Completion Reason
+      additionalProperties: false
+      type: object
+      required:
+      - assessment_id
+      - status
+      - result_name
+      - confirmed_level
+      - first_unconfirmed_level
+      - ceiling_reached
+      - confidence
+      - confidence_score
+      - confidence_score_interpretation
+      - profile
+      - profile_scores_percent
+      - next_level_result
+      - summary
+      - statistics
+      - pronunciation_diagnostic
+      - versions
+      - disclaimer
+      - completion_reason
+      title: AssessmentResult
+    AssessmentStateResponse:
+      properties:
+        record:
+          $ref: '#/components/schemas/AssessmentRecord'
+        current_prompt:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Current Prompt
+        progress:
+          $ref: '#/components/schemas/AssessmentProgress'
+      additionalProperties: false
+      type: object
+      required:
+      - record
+      - current_prompt
+      - progress
+      title: AssessmentStateResponse
+    AssessmentStatistics:
+      properties:
+        duration_seconds:
+          type: number
+          minimum: 0.0
+          title: Duration Seconds
+        responses_submitted:
+          type: integer
+          minimum: 0.0
+          title: Responses Submitted
+        scored_responses:
+          type: integer
+          minimum: 0.0
+          title: Scored Responses
+        invalid_audio_responses:
+          type: integer
+          minimum: 0.0
+          title: Invalid Audio Responses
+        prompt_repetitions:
+          type: integer
+          minimum: 0.0
+          title: Prompt Repetitions
+        clarification_requests:
+          type: integer
+          minimum: 0.0
+          title: Clarification Requests
+        tie_breakers_used:
+          type: integer
+          minimum: 0.0
+          title: Tie Breakers Used
+      additionalProperties: false
+      type: object
+      required:
+      - duration_seconds
+      - responses_submitted
+      - scored_responses
+      - invalid_audio_responses
+      - prompt_repetitions
+      - clarification_requests
+      - tie_breakers_used
+      title: AssessmentStatistics
+    AssessmentStatus:
+      type: string
+      enum:
+      - in_progress
+      - completed
+      - cancelled
+      title: AssessmentStatus
+    AudioUploadResponse:
+      properties:
+        assessment_id:
+          type: string
+          title: Assessment Id
+        response_id:
+          type: string
+          title: Response Id
+        audio_uri:
+          type: string
+          title: Audio Uri
+        encrypted:
+          type: boolean
+          title: Encrypted
+          default: true
+      additionalProperties: false
+      type: object
+      required:
+      - assessment_id
+      - response_id
+      - audio_uri
+      title: AudioUploadResponse
+    Body_upload_original_audio_v1_assessments__assessment_id__audio__response_id__post:
+      properties:
+        audio:
+          type: string
+          contentMediaType: application/octet-stream
+          title: Audio
+      type: object
+      required:
+      - audio
+      title: Body_upload_original_audio_v1_assessments__assessment_id__audio__response_id__post
+    CEFRLevel:
+      type: string
+      enum:
+      - A1
+      - A2
+      - B1
+      - B2
+      title: CEFRLevel
+    CurrentPrompt:
+      properties:
+        prompt_id:
+          type: string
+          title: Prompt Id
+        item_id:
+          type: string
+          title: Item Id
+        target_level:
+          anyOf:
+          - $ref: '#/components/schemas/CEFRLevel'
+          - type: 'null'
+        prompt_kind:
+          $ref: '#/components/schemas/PromptKind'
+        prompt:
+          type: string
+          title: Prompt
+        clarification_prompt:
+          type: string
+          title: Clarification Prompt
+        response_limit_seconds:
+          type: integer
+          title: Response Limit Seconds
+        prompt_repetitions_allowed:
+          type: integer
+          title: Prompt Repetitions Allowed
+        preparation_seconds:
+          type: integer
+          maximum: 60.0
+          minimum: 0.0
+          title: Preparation Seconds
+          default: 0
+        reference_text:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Reference Text
+      additionalProperties: false
+      type: object
+      required:
+      - prompt_id
+      - item_id
+      - target_level
+      - prompt_kind
+      - prompt
+      - clarification_prompt
+      - response_limit_seconds
+      - prompt_repetitions_allowed
+      title: CurrentPrompt
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    NextAction:
+      properties:
+        type:
+          $ref: '#/components/schemas/NextActionType'
+        prompt:
+          anyOf:
+          - $ref: '#/components/schemas/CurrentPrompt'
+          - type: 'null'
+        message:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Message
+      additionalProperties: false
+      type: object
+      required:
+      - type
+      title: NextAction
+    NextActionType:
+      type: string
+      enum:
+      - ask_main
+      - ask_follow_up
+      - ask_tie_breaker
+      - repeat_prompt
+      - show_result
+      - end
+      title: NextActionType
+    PromptKind:
+      type: string
+      enum:
+      - calibration
+      - main
+      - follow_up
+      - tie_breaker
+      title: PromptKind
+    PronunciationDiagnostic:
+      properties:
+        status:
+          type: string
+          enum:
+          - not_requested
+          - pending
+          - completed
+          - unavailable
+          - failed
+          title: Status
+        phoneme_error_rate:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: 'null'
+          title: Phoneme Error Rate
+        substitutions:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Substitutions
+        deletions:
+          items:
+            type: string
+          type: array
+          title: Deletions
+        insertions:
+          items:
+            type: string
+          type: array
+          title: Insertions
+        phonological_similarity:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: 'null'
+          title: Phonological Similarity
+        feature_accuracy:
+          additionalProperties:
+            type: number
+          type: object
+          title: Feature Accuracy
+        feedback:
+          items:
+            type: string
+          type: array
+          title: Feedback
+        impact_on_conversational_level:
+          type: string
+          const: none
+          title: Impact On Conversational Level
+          default: none
+        failure_reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Failure Reason
+      additionalProperties: false
+      type: object
+      required:
+      - status
+      title: PronunciationDiagnostic
+    PronunciationResultEvent:
+      properties:
+        event_type:
+          type: string
+          enum:
+          - assessment.pronunciation_completed
+          - assessment.pronunciation_failed
+          title: Event Type
+        event_id:
+          type: string
+          title: Event Id
+        occurred_at:
+          type: string
+          format: date-time
+          title: Occurred At
+        assessment_id:
+          type: string
+          title: Assessment Id
+        response_id:
+          type: string
+          title: Response Id
+        status:
+          type: string
+          enum:
+          - completed
+          - failed
+          title: Status
+        diagnostic:
+          $ref: '#/components/schemas/PronunciationDiagnostic'
+      additionalProperties: false
+      type: object
+      required:
+      - event_type
+      - event_id
+      - occurred_at
+      - assessment_id
+      - response_id
+      - status
+      - diagnostic
+      title: PronunciationResultEvent
+    ResponseDecision:
+      type: string
+      enum:
+      - pass
+      - borderline
+      - fail
+      - invalid_audio
+      - not_scored
+      title: ResponseDecision
+    ResponseResult:
+      properties:
+        assessment_id:
+          type: string
+          title: Assessment Id
+        response_id:
+          type: string
+          title: Response Id
+        response_decision:
+          $ref: '#/components/schemas/ResponseDecision'
+        weighted_score:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Weighted Score
+        stage_status:
+          type: string
+          title: Stage Status
+        next_action:
+          $ref: '#/components/schemas/NextAction'
+        current_level:
+          anyOf:
+          - $ref: '#/components/schemas/CEFRLevel'
+          - type: 'null'
+        progress:
+          $ref: '#/components/schemas/AssessmentProgress'
+        idempotent_replay:
+          type: boolean
+          title: Idempotent Replay
+          default: false
+      additionalProperties: false
+      type: object
+      required:
+      - assessment_id
+      - response_id
+      - response_decision
+      - stage_status
+      - next_action
+      - current_level
+      - progress
+      title: ResponseResult
+    ResponseSubmission:
+      properties:
+        response_id:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: Response Id
+        idempotency_key:
+          type: string
+          maxLength: 128
+          minLength: 8
+          title: Idempotency Key
+        prompt_id:
+          type: string
+          maxLength: 160
+          minLength: 1
+          title: Prompt Id
+        item_id:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: Item Id
+        prompt_kind:
+          $ref: '#/components/schemas/PromptKind'
+        transcript:
+          type: string
+          maxLength: 20000
+          title: Transcript
+          default: ''
+        words:
+          items:
+            $ref: '#/components/schemas/WordTiming'
+          type: array
+          maxItems: 5000
+          title: Words
+        response_started_at_ms:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Response Started At Ms
+        response_ended_at_ms:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Response Ended At Ms
+        audio_uri:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+          title: Audio Uri
+        prompt_repetitions:
+          type: integer
+          maximum: 10.0
+          minimum: 0.0
+          title: Prompt Repetitions
+          default: 0
+        clarification_requests:
+          type: integer
+          maximum: 20.0
+          minimum: 0.0
+          title: Clarification Requests
+          default: 0
+        asr_confidence:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: 'null'
+          title: Asr Confidence
+        explicit_audio_issue:
+          type: boolean
+          title: Explicit Audio Issue
+          default: false
+        audio_issue_reason:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Audio Issue Reason
+        session_interrupted:
+          type: boolean
+          title: Session Interrupted
+          default: false
+      additionalProperties: false
+      type: object
+      required:
+      - response_id
+      - idempotency_key
+      - prompt_id
+      - item_id
+      - prompt_kind
+      title: ResponseSubmission
+    ResultConfidence:
+      type: string
+      enum:
+      - high
+      - medium
+      - low
+      title: ResultConfidence
+    RetentionResponse:
+      properties:
+        deleted_audio_objects:
+          type: integer
+          title: Deleted Audio Objects
+        retention_days:
+          type: integer
+          title: Retention Days
+      additionalProperties: false
+      type: object
+      required:
+      - deleted_audio_objects
+      - retention_days
+      title: RetentionResponse
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    VersionActivationRequest:
+      properties:
+        item_bank_version:
+          type: string
+          pattern: ^[0-9]+\.[0-9]+\.[0-9]+$
+          title: Item Bank Version
+      additionalProperties: false
+      type: object
+      required:
+      - item_bank_version
+      title: VersionActivationRequest
+    VersionActivationResponse:
+      properties:
+        active_item_bank_version:
+          type: string
+          title: Active Item Bank Version
+        restart_required:
+          type: boolean
+          title: Restart Required
+        message:
+          type: string
+          title: Message
+      additionalProperties: false
+      type: object
+      required:
+      - active_item_bank_version
+      - restart_required
+      - message
+      title: VersionActivationResponse
+    VersionSet:
+      properties:
+        assessment:
+          type: string
+          title: Assessment
+        item_bank:
+          type: string
+          title: Item Bank
+        rubric:
+          type: string
+          title: Rubric
+        scorer:
+          type: string
+          title: Scorer
+      additionalProperties: false
+      type: object
+      required:
+      - assessment
+      - item_bank
+      - rubric
+      - scorer
+      title: VersionSet
+    WordTiming:
+      properties:
+        word:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Word
+        start:
+          type: number
+          minimum: 0.0
+          title: Start
+        end:
+          type: number
+          minimum: 0.0
+          title: End
+        confidence:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: 'null'
+          title: Confidence
+      additionalProperties: false
+      type: object
+      required:
+      - word
+      - start
+      - end
+      title: WordTiming
