@@ -55,6 +55,7 @@ class PendingResponse:
         words: Sequence[Mapping[str, Any]],
         confidence: float | None,
         response_started_at_ms: int | None,
+        fragment_started_at_ms: int | None = None,
     ) -> int:
         if self.prompt_id not in {None, prompt_id}:
             self.reset()
@@ -69,7 +70,19 @@ class PendingResponse:
             self.fragments.append(cleaned)
 
         if words:
-            offset = self.words[-1]["end"] + 0.35 if self.words else 0.0
+            if (
+                fragment_started_at_ms is not None
+                and self.response_started_at_ms is not None
+            ):
+                offset = max(
+                    0.0,
+                    (fragment_started_at_ms - self.response_started_at_ms) / 1000.0,
+                )
+            else:
+                # Compatibility fallback for callers without wall-clock
+                # fragment starts. The production adapter supplies the real
+                # start so measured silence is never an invented fixed gap.
+                offset = self.words[-1]["end"] + 0.35 if self.words else 0.0
             for word in words:
                 text = str(word.get("word") or "").strip()
                 if not text:

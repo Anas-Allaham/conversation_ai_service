@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from services.fluency import FluencyObservationResult, assessment_dimension_score
+
 from .models import (
     AudioQuality,
     DimensionScores,
@@ -32,8 +34,28 @@ def score_evaluator_output(
     provider: str,
     model: str,
     used_fallback: bool = False,
+    fluency_observation: FluencyObservationResult | None = None,
+    target_level: str | None = None,
 ) -> ScoredResponse:
-    score = weighted_score(output.scores)
+    scores = output.scores
+    evidence = output.evidence
+    fluency_source = "evaluator_fallback"
+    if fluency_observation is not None and target_level is not None:
+        rule_score = assessment_dimension_score(fluency_observation, target_level)
+        if rule_score is not None:
+            scores = scores.model_copy(update={"fluency": rule_score})
+            evidence = evidence.model_copy(
+                update={
+                    "fluency": (
+                        f"{fluency_observation.scorer_version} index "
+                        f"{fluency_observation.fluency_index}/100 from "
+                        f"{fluency_observation.features.word_count} timed words; "
+                        f"target-level rubric score {rule_score}/4."
+                    )
+                }
+            )
+            fluency_source = "rule_scorer"
+    score = weighted_score(scores)
     reasons: list[str] = []
 
     if output.audio_quality == AudioQuality.INVALID:
@@ -50,9 +72,9 @@ def score_evaluator_output(
         reasons.append("The communicative task was not achieved.")
     else:
         critical_met = (
-            output.scores.task_achievement >= 3
-            and output.scores.interactive_communication >= 3
-            and output.scores.intelligibility >= 2
+            scores.task_achievement >= 3
+            and scores.interactive_communication >= 3
+            and scores.intelligibility >= 2
         )
         if score >= PASS_THRESHOLD and critical_met:
             decision = ResponseDecision.PASS
@@ -68,17 +90,19 @@ def score_evaluator_output(
                 reasons.append("Evidence fell within the provisional borderline range.")
 
     return ScoredResponse(
-        scores=output.scores,
+        scores=scores,
         weighted_score=score,
         decision=decision,
         meaning_blocked=output.meaning_blocked,
         audio_quality=output.audio_quality,
         evaluator_confidence=output.evaluator_confidence,
-        evidence=output.evidence,
+        evidence=evidence,
         decision_reasons=reasons,
         evaluator_provider=provider,
         evaluator_model=model,
         used_fallback=used_fallback,
         task_achieved=output.task_achieved,
         task_relevant=output.task_relevant,
+        fluency_observation=fluency_observation,
+        fluency_source=fluency_source,
     )

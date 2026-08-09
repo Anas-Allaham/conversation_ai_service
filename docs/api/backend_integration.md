@@ -46,6 +46,12 @@ adaptive stopping makes one exact remaining time misleading.
 
 `GET /v1/assessments/{id}/result` returns the level, categorical and numeric evidence confidence, six dimension levels and evidence percentages, boundary result, and operational statistics. `confidence_score` is an evidence-sufficiency index from 0 to 100; it is not a calibrated probability that the level is correct. Likewise, `profile_scores_percent` normalizes administered-task rubric evidence and is not an official CEFR percentage.
 
+The result also contains a `fluency` object from `fluency-v0.1`. Its
+`fluency_index` is an explainable 0-100 index, not a percentage or probability.
+It includes separate confidence, evidence counts, four subscores, feedback, and
+the scorer version. The controlled assessment may include
+`cefr_fluency_estimate`; guided/free session results must not.
+
 Important fields for the application backend are:
 
 ```json
@@ -57,7 +63,7 @@ Important fields for the application backend are:
   "profile": {
     "task_achievement": "B1",
     "interactive_communication": "B1",
-    "fluency": "B2",
+    "fluency": "B1",
     "coherence": "B1",
     "lexical_adequacy": "B1",
     "intelligibility": "B2"
@@ -65,10 +71,29 @@ Important fields for the application backend are:
   "profile_scores_percent": {
     "task_achievement": 75,
     "interactive_communication": 75,
-    "fluency": 81,
+    "fluency": 72,
     "coherence": 69,
     "lexical_adequacy": 75,
     "intelligibility": 81
+  },
+  "fluency": {
+    "session_id": "assess-456",
+    "mode": "assessment",
+    "status": "scored",
+    "fluency_index": 72,
+    "confidence": "medium",
+    "evidence_count": {
+      "eligible_turns": 5,
+      "total_turns": 5,
+      "total_words": 118,
+      "learner_speech_seconds": 68.4,
+      "timestamped_turns": 5,
+      "timestamp_coverage": 1.0
+    },
+    "subscores": {"speed": 76, "breakdown": 65, "continuity": 78, "repair": 86},
+    "feedback": ["Your pace was generally functional across the eligible turns."],
+    "cefr_fluency_estimate": "B1",
+    "scorer_version": "fluency-v0.1"
   },
   "next_level_result": "B2 was not yet demonstrated",
   "statistics": {
@@ -95,11 +120,25 @@ the learner-data policy required by your application.
 ## Mode routing
 
 ```text
-mode=conversation          -> LiveKit agent english-tutor
-mode=placement_assessment -> LiveKit agent english-level-assessor
+mode=guided               -> english-tutor -> shared fluency service
+mode=free                 -> english-tutor -> shared fluency service
+mode=placement_assessment -> english-level-assessor -> assessment + shared fluency service
 ```
 
-Normal conversation never calls this service. Scoring logic never lives in `voice_agent.py` or the client.
+For tutor sessions, set LiveKit room metadata to
+`{"conversation_mode":"guided"}` or `{"conversation_mode":"free"}`. The
+voice worker only transports Flux timestamps. Scoring logic remains in
+`services/fluency`, never in the LLM prompt or browser.
+
+Submit and retrieve rolling conversation fluency through:
+
+- `POST /v1/fluency/sessions/{session_id}/turns`
+- `GET /v1/fluency/sessions/{session_id}?mode=guided|free`
+
+Short replies remain valid conversation turns but are excluded from scoring.
+The endpoint returns `insufficient_evidence` until the session has at least
+three eligible turns and either five eligible turns or 30 seconds of learner
+speech. See `docs/fluency/fluency_v0_1.md` for the full contract.
 
 ## Audio and pronunciation
 
@@ -116,7 +155,7 @@ level if a separate pronunciation worker is pending or fails.
 
 Flux can commit one deliberate answer as several transcripts. The official adapter
 buffers successive commits for `ASSESSMENT_RESPONSE_COLLECTION_DELAY_SECONDS`
-(four seconds by default), combines their transcript and timing evidence, and sends
+(four seconds by default), combines their transcript and real wall-clock timing evidence, and sends
 one response for the current prompt. An optional phrase such as `that's all` ends
 the collection immediately; it is never required.
 

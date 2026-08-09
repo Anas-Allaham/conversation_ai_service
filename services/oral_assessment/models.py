@@ -7,6 +7,8 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from services.fluency.models import FluencyObservationResult, FluencySessionResult
+
 
 def utc_now() -> datetime:
     return datetime.now(UTC)
@@ -329,6 +331,8 @@ class ScoredResponse(StrictModel):
     used_fallback: bool = False
     task_achieved: bool = True
     task_relevant: bool = True
+    fluency_observation: FluencyObservationResult | None = None
+    fluency_source: Literal["rule_scorer", "evaluator_fallback", "not_scored"] = "not_scored"
 
 
 class NextAction(StrictModel):
@@ -354,6 +358,7 @@ class VersionSet(StrictModel):
     item_bank: str
     rubric: str
     scorer: str
+    fluency: str = "fluency-v0.1"
 
 
 class PronunciationDiagnostic(StrictModel):
@@ -391,6 +396,7 @@ class AssessmentResult(StrictModel):
     confidence_score_interpretation: str
     profile: dict[str, CEFRLevel | Literal["Pre-A1", "Not determined"]]
     profile_scores_percent: dict[str, int]
+    fluency: FluencySessionResult
     next_level_result: str
     summary: str
     statistics: AssessmentStatistics

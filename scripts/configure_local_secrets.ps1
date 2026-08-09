@@ -93,8 +93,8 @@ if ($audioKey -notmatch "^[A-Za-z0-9_-]{43}=$") {
 # Keep an existing installation on the code and item-bank versions shipped
 # with this release. Secrets and provider keys are preserved.
 $previousAssessmentVersion = Get-DotEnvValue $text "ASSESSMENT_VERSION"
-if ($previousAssessmentVersion -ne "0.2.1") {
-    $text = Set-DotEnvValue $text "ASSESSMENT_VERSION" "0.2.1"
+if ($previousAssessmentVersion -ne "0.3.0") {
+    $text = Set-DotEnvValue $text "ASSESSMENT_VERSION" "0.3.0"
     $changed = $true
 }
 
@@ -104,14 +104,14 @@ if ($previousAssessmentVersion -ne "0.2.1") {
 $geminiModel = Get-DotEnvValue $text "GEMINI_MODEL"
 if (
     [string]::IsNullOrWhiteSpace($geminiModel) -or
-    ($previousAssessmentVersion -ne "0.2.1" -and $geminiModel -eq "gemini-2.5-flash")
+    ($previousAssessmentVersion -ne "0.3.0" -and $geminiModel -eq "gemini-2.5-flash")
 ) {
     $text = Set-DotEnvValue $text "GEMINI_MODEL" "gemini-2.5-flash-lite"
     $changed = $true
 }
 
-if ((Get-DotEnvValue $text "GEMINI_API_VERSION") -ne "v1") {
-    $text = Set-DotEnvValue $text "GEMINI_API_VERSION" "v1"
+if ((Get-DotEnvValue $text "GEMINI_API_VERSION") -ne "v1beta") {
+    $text = Set-DotEnvValue $text "GEMINI_API_VERSION" "v1beta"
     $changed = $true
 }
 
@@ -133,11 +133,29 @@ if ((Get-DotEnvValue $text "ITEM_BANK_VERSION") -ne "0.2.0") {
 }
 
 foreach ($versionSetting in @{
-    "RUBRIC_VERSION" = "0.2.1"
-    "SCORER_VERSION" = "0.2.1"
+    "RUBRIC_VERSION" = "0.3.0"
+    "SCORER_VERSION" = "0.3.0"
+    "FLUENCY_SCORER_VERSION" = "fluency-v0.1"
 }.GetEnumerator()) {
     if ((Get-DotEnvValue $text $versionSetting.Key) -ne $versionSetting.Value) {
         $text = Set-DotEnvValue $text $versionSetting.Key $versionSetting.Value
+        $changed = $true
+    }
+}
+
+foreach ($fluencySetting in @{
+    "FLUENCY_PAUSE_THRESHOLD_SECONDS" = "0.50"
+    "FLUENCY_LONG_PAUSE_THRESHOLD_SECONDS" = "1.50"
+    "FLUENCY_MINIMUM_TURN_WORDS" = "5"
+    "FLUENCY_MINIMUM_TURN_SECONDS" = "2.50"
+    "FLUENCY_ASSESSMENT_MINIMUM_TURNS" = "2"
+    "FLUENCY_ASSESSMENT_MINIMUM_SPEECH_SECONDS" = "12"
+    "FLUENCY_CONVERSATION_MINIMUM_TURNS" = "3"
+    "FLUENCY_CONVERSATION_TARGET_TURNS" = "5"
+    "FLUENCY_CONVERSATION_MINIMUM_SPEECH_SECONDS" = "30"
+}.GetEnumerator()) {
+    if ([string]::IsNullOrWhiteSpace((Get-DotEnvValue $text $fluencySetting.Key))) {
+        $text = Set-DotEnvValue $text $fluencySetting.Key $fluencySetting.Value
         $changed = $true
     }
 }

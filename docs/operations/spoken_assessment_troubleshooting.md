@@ -57,9 +57,9 @@ ASSESSMENT_ENDPOINTING_MIN_DELAY_SECONDS=1.50
 ASSESSMENT_ENDPOINTING_MAX_DELAY_SECONDS=4.00
 ```
 
-The normal `app/realtime/voice_agent.py` is unchanged. Do not lower these
-assessment values to improve latency unless a repeatable test shows that
-answers remain complete.
+The normal `app/realtime/voice_agent.py` keeps its tutor behavior but now captures
+word timings for shared fluency measurement. Do not lower these assessment values
+to improve latency unless a repeatable test shows that answers remain complete.
 
 ## The transcript contains wrong words
 
@@ -98,7 +98,7 @@ private; changing the key makes older encrypted recordings unreadable.
 
 ## HTTP 503 while scoring
 
-Gemini may return retryable 429 or 503 responses. Release 0.2.1 disables the
+Gemini may return retryable 429 or 503 responses. Release 0.3.0 disables the
 SDK's generic immediate retries and instead honors Google's reported
 `RetryInfo.retryDelay`, with a bounded total wait. The assessment client does
 not immediately duplicate a response POST when the service supplies
@@ -116,8 +116,8 @@ Common values include `provider_overloaded`, `provider_rate_limited`,
 printing the learner transcript or provider credentials.
 
 An `AQ.` prefix is normal for the authorization-key format that Google AI Studio
-introduced in 2026. Do not reject a key based on that prefix. Release 0.2.1 uses
-the stable `v1` API and validates the configured key/model before readiness
+introduced in 2026. Do not reject a key based on that prefix. Release 0.3.0 uses
+the Gemini Developer API `v1beta` endpoint and validates the configured key/model before readiness
 becomes healthy. A 404 therefore blocks assessor startup instead of replaying a
 learner prompt.
 

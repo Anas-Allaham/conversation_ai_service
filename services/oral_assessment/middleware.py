@@ -6,6 +6,7 @@ import threading
 import time
 import uuid
 from collections import defaultdict, deque
+from typing import ClassVar
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -13,7 +14,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from .config import Settings
 from .metrics import ServiceMetrics
-
 
 CORRELATION_RE = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
 
@@ -38,7 +38,13 @@ class SlidingWindowRateLimiter:
 
 
 class SecurityAndObservabilityMiddleware(BaseHTTPMiddleware):
-    PUBLIC_PATHS = {"/health/live", "/health/ready", "/docs", "/redoc", "/openapi.json"}
+    PUBLIC_PATHS: ClassVar[set[str]] = {
+        "/health/live",
+        "/health/ready",
+        "/docs",
+        "/redoc",
+        "/openapi.json",
+    }
 
     def __init__(self, app, settings: Settings, metrics: ServiceMetrics) -> None:
         super().__init__(app)
@@ -103,4 +109,3 @@ class SecurityAndObservabilityMiddleware(BaseHTTPMiddleware):
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Cache-Control"] = "no-store"
         return response
-

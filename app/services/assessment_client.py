@@ -220,6 +220,25 @@ class AssessmentClient:
     def get_assessment_state(self, assessment_id: str) -> dict[str, Any]:
         return self._request("GET", f"/v1/assessments/{assessment_id}", retry_idempotently=True)
 
+    def submit_fluency_turn(
+        self,
+        session_id: str,
+        payload: dict[str, Any],
+    ) -> dict[str, Any]:
+        return self._request(
+            "POST",
+            f"/v1/fluency/sessions/{session_id}/turns",
+            payload=payload,
+            retry_idempotently=True,
+        )
+
+    def get_fluency_session(self, session_id: str, mode: str) -> dict[str, Any]:
+        return self._request(
+            "GET",
+            f"/v1/fluency/sessions/{session_id}?mode={mode}",
+            retry_idempotently=True,
+        )
+
     def upload_audio(
         self,
         assessment_id: str,
@@ -253,6 +272,20 @@ class AssessmentClient:
 
     async def get_assessment_state_async(self, assessment_id: str) -> dict[str, Any]:
         return await asyncio.to_thread(self.get_assessment_state, assessment_id)
+
+    async def submit_fluency_turn_async(
+        self,
+        session_id: str,
+        payload: dict[str, Any],
+    ) -> dict[str, Any]:
+        return await asyncio.to_thread(self.submit_fluency_turn, session_id, payload)
+
+    async def get_fluency_session_async(
+        self,
+        session_id: str,
+        mode: str,
+    ) -> dict[str, Any]:
+        return await asyncio.to_thread(self.get_fluency_session, session_id, mode)
 
     async def upload_audio_async(self, assessment_id: str, response_id: str, wav_bytes: bytes) -> str:
         return await asyncio.to_thread(self.upload_audio, assessment_id, response_id, wav_bytes)

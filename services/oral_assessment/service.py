@@ -35,7 +35,11 @@ from .repository import AssessmentRepository, ConcurrencyConflict
 from .result_aggregator import build_result
 from .rubric_evaluator import EvaluationInput, EvaluationUnavailable, RubricEvaluator
 from .scoring_engine import score_evaluator_output
-from .speech_metrics import extract_speech_metrics, invalid_audio_reason
+from .speech_metrics import (
+    extract_fluency_observation,
+    extract_speech_metrics,
+    invalid_audio_reason,
+)
 
 
 class AssessmentNotFound(LookupError):
@@ -75,6 +79,7 @@ class AssessmentService:
             item_bank=self.item_bank.bank.version,
             rubric=self.settings.rubric_version,
             scorer=self.settings.scorer_version,
+            fluency=self.settings.fluency_version,
         )
         record = AssessmentRecord(
             assessment_id=assessment_id,
@@ -245,6 +250,11 @@ class AssessmentService:
                 if invalid_reason:
                     scored = self._invalid_score(invalid_reason)
                 else:
+                    fluency_observation = extract_fluency_observation(
+                        assessment_id,
+                        submission,
+                        target_level=item.target_level.value,
+                    )
                     try:
                         evaluator_output = self.evaluator.evaluate(
                             EvaluationInput(
@@ -274,6 +284,8 @@ class AssessmentService:
                         evaluator_output,
                         provider=self.evaluator.provider_name,
                         model=self.evaluator.model_name,
+                        fluency_observation=fluency_observation,
+                        target_level=item.target_level.value,
                     )
                 result = self._advance_scored_response(record, submission, scored)
 

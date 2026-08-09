@@ -5,7 +5,6 @@ import os
 import urllib.request
 import uuid
 
-
 BASE_URL = os.getenv("ASSESSMENT_SERVICE_URL", "http://127.0.0.1:8080").rstrip("/")
 TOKEN = os.getenv("ASSESSMENT_SERVICE_TOKEN", "dev-service-token")
 

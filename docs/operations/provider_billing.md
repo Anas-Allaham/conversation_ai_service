@@ -5,12 +5,12 @@ verify the linked provider pages before production budgeting.
 
 ## Gemini evaluator
 
-The 0.2.1 default is:
+The 0.3.0 default is:
 
 ```env
 EVALUATOR_PROVIDER=gemini
 GEMINI_MODEL=gemini-2.5-flash-lite
-GEMINI_API_VERSION=v1
+GEMINI_API_VERSION=v1beta
 ```
 
 Google's paid Standard prices are:
@@ -48,7 +48,7 @@ Aura-2 for speech generation. Current pay-as-you-go prices are:
 
 Deepgram currently advertises USD 200 of free credit for new pay-as-you-go
 accounts. The single `APITimeoutError` in the supplied log does not prove that
-credits were exhausted; it is a transport/synthesis timeout. Release 0.2.1
+credits were exhausted; it is a transport/synthesis timeout. Release 0.3.0
 raises the assessment-only TTS timeout to twenty seconds and allows four retry
 attempts.
 

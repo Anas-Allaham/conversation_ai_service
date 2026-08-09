@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 import threading
+from collections.abc import AsyncIterable
 from typing import Any
 
 from dotenv import load_dotenv
@@ -25,6 +27,10 @@ from livekit.agents.llm import ChatMessage
 # registration to happen on Python's MainThread.
 from livekit.plugins import ai_coustics, deepgram, silero
 
+from app.realtime.conversation_fluency import (
+    ConversationFluencyTracker,
+    conversation_mode,
+)
 
 # ============================================================
 # ENVIRONMENT
@@ -146,6 +152,19 @@ class EnglishTutor(Agent):
         super().__init__(
             instructions=TUTOR_INSTRUCTIONS,
         )
+
+
+class FluencyTrackingTutor(EnglishTutor):
+    """Preserve the tutor behavior while capturing Flux timing evidence."""
+
+    def __init__(self, tracker: ConversationFluencyTracker) -> None:
+        super().__init__()
+        self.tracker = tracker
+
+    async def stt_node(self, audio, model_settings) -> AsyncIterable[Any]:
+        async for event in Agent.default.stt_node(self, audio, model_settings):
+            self.tracker.observe_stt_event(event)
+            yield event
 
 
 # ============================================================
@@ -369,6 +388,7 @@ def metric_value(
 
 def add_observability(
     session: AgentSession,
+    tracker: ConversationFluencyTracker | None = None,
 ) -> None:
 
     @session.on("conversation_item_added")
@@ -391,14 +411,14 @@ def add_observability(
         )
 
         if item.role == "user":
+            content = getattr(item, "text_content", "")
+            if callable(content):
+                content = content()
+            transcript = str(content or "").strip()
             logger.info(
                 "[USER TURN] text=%r | "
                 "transcription=%s | end-of-turn=%s",
-                getattr(
-                    item,
-                    "text_content",
-                    "",
-                ),
+                    transcript,
                 metric_value(
                     metrics,
                     "transcription_delay",
@@ -408,6 +428,13 @@ def add_observability(
                     "end_of_turn_delay",
                 ),
             )
+            if tracker is not None and transcript:
+                turn_id = str(
+                    getattr(item, "id", None)
+                    or getattr(item, "item_id", None)
+                    or f"turn-{threading.get_ident()}-{id(item)}"
+                )
+                asyncio.create_task(tracker.submit_turn(transcript, turn_id))
 
         elif item.role == "assistant":
             logger.info(
@@ -500,6 +527,11 @@ async def english_tutor_session(
     vad = build_vad()
     llm = build_llm()
     tts = build_tts()
+    mode = conversation_mode(ctx.room)
+    fluency_tracker = ConversationFluencyTracker(
+        session_id=ctx.room.name,
+        mode=mode,
+    )
 
     session = AgentSession(
         stt=stt,
@@ -555,13 +587,16 @@ async def english_tutor_session(
         user_away_timeout=None,
     )
 
-    add_observability(
-        session
-    )
+    add_observability(session, fluency_tracker)
+
+    @session.on("user_state_changed")
+    def on_user_state_changed(event) -> None:
+        if str(event.new_state).lower().endswith("speaking"):
+            fluency_tracker.mark_user_speaking()
 
     await session.start(
         room=ctx.room,
-        agent=EnglishTutor(),
+        agent=FluencyTrackingTutor(fluency_tracker),
         room_options=room_io.RoomOptions(
             audio_input=build_audio_input_options(),
         ),

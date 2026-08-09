@@ -4,10 +4,10 @@ info:
   description: Original CEFR-aligned adaptive oral placement service. This service
     reports a conversational interaction profile and does not issue official CEFR
     certification.
-  version: 0.2.0
+  version: 0.3.0
 paths:
   /health/live:
-    get: 
+    get:
       summary: Health Live
       operationId: health_live_health_live_get
       responses:
@@ -278,6 +278,65 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RetentionResponse'
+  /v1/fluency/sessions/{session_id}/turns:
+    post:
+      summary: Submit Fluency Turn
+      operationId: submit_fluency_turn_v1_fluency_sessions__session_id__turns_post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FluencyObservationRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FluencyTurnResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/fluency/sessions/{session_id}:
+    get:
+      summary: Get Fluency Session
+      operationId: get_fluency_session_v1_fluency_sessions__session_id__get
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      - name: mode
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/FluencyMode'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FluencySessionResult'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
     AssessmentCreateRequest:
@@ -571,6 +630,8 @@ components:
             type: integer
           type: object
           title: Profile Scores Percent
+        fluency:
+          $ref: '#/components/schemas/FluencySessionResult'
         next_level_result:
           type: string
           title: Next Level Result
@@ -619,6 +680,7 @@ components:
       - confidence_score_interpretation
       - profile
       - profile_scores_percent
+      - fluency
       - next_level_result
       - summary
       - statistics
@@ -783,6 +845,485 @@ components:
       - response_limit_seconds
       - prompt_repetitions_allowed
       title: CurrentPrompt
+    FluencyConfidence:
+      type: string
+      enum:
+      - high
+      - medium
+      - low
+      title: FluencyConfidence
+    FluencyEvidenceCount:
+      properties:
+        eligible_turns:
+          type: integer
+          minimum: 0.0
+          title: Eligible Turns
+        total_turns:
+          type: integer
+          minimum: 0.0
+          title: Total Turns
+        total_words:
+          type: integer
+          minimum: 0.0
+          title: Total Words
+        learner_speech_seconds:
+          type: number
+          minimum: 0.0
+          title: Learner Speech Seconds
+        timestamped_turns:
+          type: integer
+          minimum: 0.0
+          title: Timestamped Turns
+        timestamp_coverage:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Timestamp Coverage
+      additionalProperties: false
+      type: object
+      required:
+      - eligible_turns
+      - total_turns
+      - total_words
+      - learner_speech_seconds
+      - timestamped_turns
+      - timestamp_coverage
+      title: FluencyEvidenceCount
+    FluencyFeatures:
+      properties:
+        word_count:
+          type: integer
+          minimum: 0.0
+          title: Word Count
+        response_duration_seconds:
+          type: number
+          minimum: 0.0
+          title: Response Duration Seconds
+        speech_duration_seconds:
+          type: number
+          minimum: 0.0
+          title: Speech Duration Seconds
+        speech_rate_wpm:
+          type: number
+          minimum: 0.0
+          title: Speech Rate Wpm
+        articulation_rate_wpm:
+          type: number
+          minimum: 0.0
+          title: Articulation Rate Wpm
+        pace_stability:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: 'null'
+          title: Pace Stability
+        pause_count:
+          type: integer
+          minimum: 0.0
+          title: Pause Count
+        pauses_per_minute:
+          type: number
+          minimum: 0.0
+          title: Pauses Per Minute
+        pause_duration_seconds:
+          type: number
+          minimum: 0.0
+          title: Pause Duration Seconds
+        pause_ratio:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Pause Ratio
+        phonation_ratio:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Phonation Ratio
+        mean_length_of_run_words:
+          type: number
+          minimum: 0.0
+          title: Mean Length Of Run Words
+        longest_run_words:
+          type: integer
+          minimum: 0.0
+          title: Longest Run Words
+        long_pause_count:
+          type: integer
+          minimum: 0.0
+          title: Long Pause Count
+        long_pauses_per_minute:
+          type: number
+          minimum: 0.0
+          title: Long Pauses Per Minute
+        max_inter_word_gap_seconds:
+          type: number
+          minimum: 0.0
+          title: Max Inter Word Gap Seconds
+        filler_count:
+          type: integer
+          minimum: 0.0
+          title: Filler Count
+        fillers_per_100_words:
+          type: number
+          minimum: 0.0
+          title: Fillers Per 100 Words
+        immediate_repeat_count:
+          type: integer
+          minimum: 0.0
+          title: Immediate Repeat Count
+        repeated_phrase_count:
+          type: integer
+          minimum: 0.0
+          title: Repeated Phrase Count
+        self_correction_count:
+          type: integer
+          minimum: 0.0
+          title: Self Correction Count
+        timing_source:
+          type: string
+          enum:
+          - word_timestamps
+          - response_window
+          - unavailable
+          title: Timing Source
+      additionalProperties: false
+      type: object
+      required:
+      - word_count
+      - response_duration_seconds
+      - speech_duration_seconds
+      - speech_rate_wpm
+      - articulation_rate_wpm
+      - pause_count
+      - pauses_per_minute
+      - pause_duration_seconds
+      - pause_ratio
+      - phonation_ratio
+      - mean_length_of_run_words
+      - longest_run_words
+      - long_pause_count
+      - long_pauses_per_minute
+      - max_inter_word_gap_seconds
+      - filler_count
+      - fillers_per_100_words
+      - immediate_repeat_count
+      - repeated_phrase_count
+      - self_correction_count
+      - timing_source
+      title: FluencyFeatures
+    FluencyMode:
+      type: string
+      enum:
+      - assessment
+      - guided
+      - free
+      title: FluencyMode
+    FluencyObservationRequest:
+      properties:
+        session_id:
+          type: string
+          maxLength: 160
+          minLength: 1
+          title: Session Id
+        turn_id:
+          type: string
+          maxLength: 160
+          minLength: 1
+          title: Turn Id
+        mode:
+          $ref: '#/components/schemas/FluencyMode'
+        transcript:
+          type: string
+          maxLength: 20000
+          title: Transcript
+          default: ''
+        words:
+          items:
+            $ref: '#/components/schemas/FluencyWord'
+          type: array
+          maxItems: 5000
+          title: Words
+        response_started_at_ms:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Response Started At Ms
+        response_ended_at_ms:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Response Ended At Ms
+        completed:
+          type: boolean
+          title: Completed
+          default: true
+        assistance_count:
+          type: integer
+          maximum: 20.0
+          minimum: 0.0
+          title: Assistance Count
+          default: 0
+        target_level:
+          anyOf:
+          - type: string
+            enum:
+            - A1
+            - A2
+            - B1
+            - B2
+          - type: 'null'
+          title: Target Level
+        task_type:
+          anyOf:
+          - type: string
+            maxLength: 100
+          - type: 'null'
+          title: Task Type
+        explicit_audio_issue:
+          type: boolean
+          title: Explicit Audio Issue
+          default: false
+        audio_issue_reason:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Audio Issue Reason
+      additionalProperties: false
+      type: object
+      required:
+      - session_id
+      - turn_id
+      - mode
+      title: FluencyObservationRequest
+      description: 'One committed learner turn sent by any application mode.
+
+
+        Word timestamps are seconds relative to the beginning of the full learner
+
+        response. System latency, tutor speech, and silence after the last learner
+
+        word must not be included.'
+    FluencyObservationResult:
+      properties:
+        session_id:
+          type: string
+          title: Session Id
+        turn_id:
+          type: string
+          title: Turn Id
+        mode:
+          $ref: '#/components/schemas/FluencyMode'
+        status:
+          $ref: '#/components/schemas/FluencyScoreStatus'
+        eligible:
+          type: boolean
+          title: Eligible
+        fluency_index:
+          anyOf:
+          - type: integer
+            maximum: 100.0
+            minimum: 0.0
+          - type: 'null'
+          title: Fluency Index
+        confidence:
+          $ref: '#/components/schemas/FluencyConfidence'
+        evidence_count:
+          $ref: '#/components/schemas/FluencyEvidenceCount'
+        features:
+          $ref: '#/components/schemas/FluencyFeatures'
+        subscores:
+          anyOf:
+          - $ref: '#/components/schemas/FluencySubscores'
+          - type: 'null'
+        feedback:
+          items:
+            type: string
+          type: array
+          title: Feedback
+        insufficiency_reasons:
+          items:
+            type: string
+          type: array
+          title: Insufficiency Reasons
+        cefr_fluency_estimate:
+          anyOf:
+          - type: string
+            enum:
+            - Pre-A1
+            - A1
+            - A2
+            - B1
+            - B2
+          - type: 'null'
+          title: Cefr Fluency Estimate
+        scorer_version:
+          type: string
+          const: fluency-v0.1
+          title: Scorer Version
+          default: fluency-v0.1
+        score_interpretation:
+          type: string
+          title: Score Interpretation
+          default: Explainable delivery-fluency index, not a probability or official
+            CEFR score.
+      additionalProperties: false
+      type: object
+      required:
+      - session_id
+      - turn_id
+      - mode
+      - status
+      - eligible
+      - confidence
+      - evidence_count
+      - features
+      title: FluencyObservationResult
+    FluencyScoreStatus:
+      type: string
+      enum:
+      - scored
+      - insufficient_evidence
+      - invalid_audio
+      title: FluencyScoreStatus
+    FluencySessionResult:
+      properties:
+        session_id:
+          type: string
+          title: Session Id
+        mode:
+          $ref: '#/components/schemas/FluencyMode'
+        status:
+          $ref: '#/components/schemas/FluencyScoreStatus'
+        fluency_index:
+          anyOf:
+          - type: integer
+            maximum: 100.0
+            minimum: 0.0
+          - type: 'null'
+          title: Fluency Index
+        confidence:
+          $ref: '#/components/schemas/FluencyConfidence'
+        evidence_count:
+          $ref: '#/components/schemas/FluencyEvidenceCount'
+        subscores:
+          anyOf:
+          - $ref: '#/components/schemas/FluencySubscores'
+          - type: 'null'
+        feedback:
+          items:
+            type: string
+          type: array
+          title: Feedback
+        insufficiency_reasons:
+          items:
+            type: string
+          type: array
+          title: Insufficiency Reasons
+        cefr_fluency_estimate:
+          anyOf:
+          - type: string
+            enum:
+            - Pre-A1
+            - A1
+            - A2
+            - B1
+            - B2
+          - type: 'null'
+          title: Cefr Fluency Estimate
+        scorer_version:
+          type: string
+          const: fluency-v0.1
+          title: Scorer Version
+          default: fluency-v0.1
+        score_interpretation:
+          type: string
+          title: Score Interpretation
+          default: Session delivery-fluency index from eligible learner turns; not
+            a probability.
+      additionalProperties: false
+      type: object
+      required:
+      - session_id
+      - mode
+      - status
+      - confidence
+      - evidence_count
+      title: FluencySessionResult
+    FluencySubscores:
+      properties:
+        speed:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Speed
+        breakdown:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Breakdown
+        continuity:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Continuity
+        repair:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Repair
+      additionalProperties: false
+      type: object
+      required:
+      - speed
+      - breakdown
+      - continuity
+      - repair
+      title: FluencySubscores
+    FluencyTurnResponse:
+      properties:
+        observation:
+          $ref: '#/components/schemas/FluencyObservationResult'
+        session:
+          $ref: '#/components/schemas/FluencySessionResult'
+      additionalProperties: false
+      type: object
+      required:
+      - observation
+      - session
+      title: FluencyTurnResponse
+    FluencyWord:
+      properties:
+        word:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Word
+        start:
+          type: number
+          minimum: 0.0
+          title: Start
+        end:
+          type: number
+          minimum: 0.0
+          title: End
+        confidence:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: 'null'
+          title: Confidence
+      additionalProperties: false
+      type: object
+      required:
+      - word
+      - start
+      - end
+      title: FluencyWord
     HTTPValidationError:
       properties:
         detail:
@@ -1168,6 +1709,10 @@ components:
         scorer:
           type: string
           title: Scorer
+        fluency:
+          type: string
+          title: Fluency
+          default: fluency-v0.1
       additionalProperties: false
       type: object
       required:

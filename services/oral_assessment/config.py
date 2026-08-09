@@ -47,6 +47,7 @@ class Settings:
     item_bank_version: str
     rubric_version: str
     scorer_version: str
+    fluency_version: str
     store_all_assessment_audio: bool
     audio_storage_backend: str
     audio_storage_root: Path
@@ -80,7 +81,7 @@ class Settings:
             evaluator_provider=os.getenv("EVALUATOR_PROVIDER", "gemini").strip().lower(),
             gemini_api_key=os.getenv("GEMINI_API_KEY", ""),
             gemini_model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite"),
-            gemini_api_version=os.getenv("GEMINI_API_VERSION", "v1").strip().lower(),
+            gemini_api_version=os.getenv("GEMINI_API_VERSION", "v1beta").strip().lower(),
             openai_api_key=os.getenv("OPENAI_API_KEY", ""),
             openai_model=os.getenv("OPENAI_MODEL", "gpt-5.6"),
             evaluator_timeout_seconds=_float("EVALUATOR_TIMEOUT_SECONDS", 15.0),
@@ -89,10 +90,11 @@ class Settings:
                 "EVALUATOR_MAX_RETRY_WAIT_SECONDS", 60.0
             ),
             allow_heuristic_evaluator=_bool("ALLOW_HEURISTIC_EVALUATOR", False),
-            assessment_version=os.getenv("ASSESSMENT_VERSION", "0.2.1"),
+            assessment_version=os.getenv("ASSESSMENT_VERSION", "0.3.0"),
             item_bank_version=os.getenv("ITEM_BANK_VERSION", "0.2.0"),
-            rubric_version=os.getenv("RUBRIC_VERSION", "0.2.1"),
-            scorer_version=os.getenv("SCORER_VERSION", "0.2.1"),
+            rubric_version=os.getenv("RUBRIC_VERSION", "0.3.0"),
+            scorer_version=os.getenv("SCORER_VERSION", "0.3.0"),
+            fluency_version=os.getenv("FLUENCY_SCORER_VERSION", "fluency-v0.1"),
             store_all_assessment_audio=_bool("STORE_ALL_ASSESSMENT_AUDIO", False),
             audio_storage_backend=os.getenv("AUDIO_STORAGE_BACKEND", "local").lower(),
             audio_storage_root=storage_root,

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from collections import defaultdict
 
+from services.fluency import FluencyMode, FluencyScoreStatus, aggregate_session
+
 from .models import (
     LEVELS,
     AssessmentRecord,
@@ -161,6 +163,7 @@ def _statistics(record: AssessmentRecord, responses: list[StoredResponse]) -> As
 def _validity_warnings(
     record: AssessmentRecord,
     responses: list[StoredResponse],
+    fluency_status: FluencyScoreStatus,
 ) -> list[str]:
     warnings: list[str] = []
     if record.boundary_verification_levels:
@@ -181,6 +184,18 @@ def _validity_warnings(
         warnings.append("At least one response received low evaluator confidence.")
     if any(response.submission.session_interrupted for response in responses):
         warnings.append("The assessment contained an interrupted response.")
+    if fluency_status != FluencyScoreStatus.SCORED:
+        warnings.append(
+            "The feature-based fluency profile had insufficient eligible timestamp evidence."
+        )
+    if any(
+        response.scored and response.scored.fluency_source == "evaluator_fallback"
+        for response in responses
+    ):
+        warnings.append(
+            "At least one response lacked enough timestamp evidence for fluency-v0.1; "
+            "its fluency contribution used the rubric evaluator fallback."
+        )
     return warnings
 
 
@@ -189,6 +204,16 @@ def build_result(
     responses: list[StoredResponse],
     pronunciation: PronunciationDiagnostic | None,
 ) -> AssessmentResult:
+    fluency_observations = [
+        response.scored.fluency_observation
+        for response in responses
+        if response.scored and response.scored.fluency_observation is not None
+    ]
+    fluency = aggregate_session(
+        record.assessment_id,
+        FluencyMode.ASSESSMENT,
+        fluency_observations,
+    )
     if record.completion_reason == "audio_unusable" and record.highest_confirmed_level is None:
         confirmed: CEFRLevel | str = "Not determined"
     elif record.highest_confirmed_level is None:
@@ -206,9 +231,17 @@ def build_result(
         next_level_result = "No higher-level boundary was established"
     confirmed_text = confirmed.value if isinstance(confirmed, CEFRLevel) else str(confirmed)
     profile = _profile(record, responses)
+    profile["fluency"] = fluency.cefr_fluency_estimate or "Not determined"
+    profile_scores = _profile_scores_percent(responses)
+    profile_scores["fluency"] = fluency.fluency_index or 0
+    fluency_text = (
+        f"{profile['fluency']} (index {fluency.fluency_index}/100)"
+        if fluency.fluency_index is not None
+        else "not determined from timestamp evidence"
+    )
     summary = (
         f"{confirmed_text} conversational interaction placement with {confidence.value} confidence. "
-        f"Fluency was assessed at {profile['fluency']}. {next_level_result}."
+        f"Fluency was {fluency_text}. {next_level_result}."
     )
     return AssessmentResult(
         assessment_id=record.assessment_id,
@@ -223,7 +256,8 @@ def build_result(
             "Deterministic evidence-sufficiency index, not a calibrated probability that the level is correct."
         ),
         profile=profile,
-        profile_scores_percent=_profile_scores_percent(responses),
+        profile_scores_percent=profile_scores,
+        fluency=fluency,
         next_level_result=next_level_result,
         summary=summary,
         statistics=_statistics(record, responses),
@@ -231,7 +265,7 @@ def build_result(
         pronunciation_diagnostic=pronunciation or PronunciationDiagnostic(status="not_requested"),
         versions=record.versions,
         disclaimer=DISCLAIMER,
-        validity_warnings=_validity_warnings(record, responses),
+        validity_warnings=_validity_warnings(record, responses, fluency.status),
         completed_at=record.completed_at,
         completion_reason=record.completion_reason or "placement_complete",
     )

@@ -433,6 +433,7 @@ class LevelAssessmentAgent(Agent):
             words=valid_submission_words(self._words),
             confidence=self._asr_confidence,
             response_started_at_ms=self._response_started_ms,
+            fragment_started_at_ms=self._turn_started_ms,
         )
         await self.recorder.pause_segment(preserve=True)
         self._preserve_recording = True

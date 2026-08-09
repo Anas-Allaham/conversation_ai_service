@@ -5,7 +5,6 @@ import json
 from collections import Counter, defaultdict
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 LEVEL_INDEX = {"Pre-A1": 0, "A1": 1, "A2": 2, "B1": 3, "B2": 4}
 DIMENSIONS = [

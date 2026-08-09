@@ -4,9 +4,12 @@ import json
 import sqlite3
 import threading
 import uuid
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Iterator, Protocol
+from typing import Any, Protocol
+
+from services.fluency.models import FluencyObservationResult
 
 from .models import (
     AssessmentRecord,
@@ -45,10 +48,12 @@ class AssessmentRepository(Protocol):
     def audit(self, event_type: str, payload: dict[str, Any], assessment_id: str | None = None, correlation_id: str = "") -> None: ...
     def set_runtime_setting(self, key: str, value: str) -> None: ...
     def get_runtime_setting(self, key: str) -> str | None: ...
+    def save_fluency_observation(self, result: FluencyObservationResult) -> FluencyObservationResult: ...
+    def get_fluency_observation(self, session_id: str, turn_id: str) -> FluencyObservationResult | None: ...
+    def list_fluency_observations(self, session_id: str) -> list[FluencyObservationResult]: ...
 
 
-SQLITE_SCHEMA = Path(__file__).with_name("migrations") / "001_sqlite.sql"
-POSTGRES_SCHEMA = Path(__file__).with_name("migrations") / "001_postgres.sql"
+MIGRATIONS_ROOT = Path(__file__).with_name("migrations")
 
 
 class SQLRepository:
@@ -88,16 +93,20 @@ class SQLRepository:
         return sql if self._is_sqlite else sql.replace("?", "%s")
 
     def initialize(self) -> None:
-        schema_path = SQLITE_SCHEMA if self._is_sqlite else POSTGRES_SCHEMA
-        schema = schema_path.read_text(encoding="utf-8")
+        backend = "sqlite" if self._is_sqlite else "postgres"
+        migrations = sorted(MIGRATIONS_ROOT.glob(f"*_{backend}.sql"))
+        if not migrations:
+            raise RepositoryError(f"No {backend} migrations were found")
         with self._lock, self._connection() as connection:
-            if self._is_sqlite:
-                connection.executescript(schema)
-            else:
-                with connection:
-                    for statement in (part.strip() for part in schema.split(";")):
-                        if statement:
-                            connection.execute(statement)
+            for migration in migrations:
+                schema = migration.read_text(encoding="utf-8")
+                if self._is_sqlite:
+                    connection.executescript(schema)
+                else:
+                    with connection:
+                        for statement in (part.strip() for part in schema.split(";")):
+                            if statement:
+                                connection.execute(statement)
 
     def create_assessment(self, record: AssessmentRecord, correlation_id: str = "") -> None:
         now = record.created_at.isoformat()
@@ -309,3 +318,67 @@ class SQLRepository:
                 (key,),
             ).fetchone()
         return None if row is None else str(row["setting_value"])
+
+    def save_fluency_observation(
+        self,
+        result: FluencyObservationResult,
+    ) -> FluencyObservationResult:
+        existing = self.get_fluency_observation(result.session_id, result.turn_id)
+        if existing is not None:
+            return existing
+        try:
+            with self._lock, self._connection() as connection, connection:
+                connection.execute(
+                    self._query(
+                        "INSERT INTO fluency_observations(session_id,turn_id,mode,result_json,created_at) VALUES(?,?,?,?,?)"
+                    ),
+                    (
+                        result.session_id,
+                        result.turn_id,
+                        result.mode.value,
+                        result.model_dump_json(),
+                        utc_now().isoformat(),
+                    ),
+                )
+        except Exception:
+            # A concurrent idempotent insert may have won the unique key. Only
+            # suppress the error when that exact observation now exists.
+            existing = self.get_fluency_observation(result.session_id, result.turn_id)
+            if existing is not None:
+                return existing
+            raise
+        return result
+
+    def get_fluency_observation(
+        self,
+        session_id: str,
+        turn_id: str,
+    ) -> FluencyObservationResult | None:
+        with self._connection() as connection:
+            row = connection.execute(
+                self._query(
+                    "SELECT result_json FROM fluency_observations WHERE session_id=? AND turn_id=?"
+                ),
+                (session_id, turn_id),
+            ).fetchone()
+        return (
+            None
+            if row is None
+            else FluencyObservationResult.model_validate_json(row["result_json"])
+        )
+
+    def list_fluency_observations(
+        self,
+        session_id: str,
+    ) -> list[FluencyObservationResult]:
+        with self._connection() as connection:
+            rows = connection.execute(
+                self._query(
+                    "SELECT result_json FROM fluency_observations WHERE session_id=? ORDER BY created_at,turn_id"
+                ),
+                (session_id,),
+            ).fetchall()
+        return [
+            FluencyObservationResult.model_validate_json(row["result_json"])
+            for row in rows
+        ]

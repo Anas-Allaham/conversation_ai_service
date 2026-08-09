@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
+from services.fluency.api import router as fluency_router
+
 from .api import router
 from .config import Settings
 from .item_bank import ItemBankRepository
@@ -92,10 +94,12 @@ def create_app(project_root: Path | None = None) -> FastAPI:
         "item_bank": item_bank.bank.version,
         "rubric": settings.rubric_version,
         "scorer": settings.scorer_version,
+        "fluency": settings.fluency_version,
     }
     repository.set_runtime_setting("active_item_bank_version", item_bank.bank.version)
     app.add_middleware(SecurityAndObservabilityMiddleware, settings=settings, metrics=metrics)
     app.include_router(router)
+    app.include_router(fluency_router)
 
     @app.exception_handler(AssessmentNotFound)
     async def not_found(request: Request, exc: AssessmentNotFound):

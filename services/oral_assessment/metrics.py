@@ -44,7 +44,7 @@ class ServiceMetrics:
             self.duration_sum_seconds += max(0.0, duration_seconds)
 
     @staticmethod
-    def _line(name: str, value: int | float, labels: dict[str, str] | None = None) -> str:
+    def _line(name: str, value: float, labels: dict[str, str] | None = None) -> str:
         label_text = ""
         if labels:
             escaped = [f'{key}="{value.replace(chr(34), chr(92) + chr(34))}"' for key, value in labels.items()]
