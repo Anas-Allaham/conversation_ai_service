@@ -11,6 +11,7 @@ test:
 
 validate:
 	python tools/validate_item_bank.py
+	python tools/validate_scenarios.py
 
 compile:
 	python -m compileall -q app services tools
@@ -20,4 +21,3 @@ run:
 
 demo:
 	python tools/api_smoke_test.py
-

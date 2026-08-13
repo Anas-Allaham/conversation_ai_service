@@ -1,19 +1,19 @@
 from __future__ import annotations
 
 import os
+import sys
 import tempfile
 from pathlib import Path
 
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 
 def main() -> None:
     with tempfile.TemporaryDirectory() as directory:
-        os.environ["ASSESSMENT_DATABASE_URL"] = (
-            f"sqlite:///{Path(directory) / 'openapi.db'}"
-        )
+        os.environ["ASSESSMENT_DATABASE_URL"] = f"sqlite:///{Path(directory) / 'openapi.db'}"
         os.environ.setdefault("EVALUATOR_PROVIDER", "heuristic")
         os.environ.setdefault("ALLOW_HEURISTIC_EVALUATOR", "true")
         os.environ.setdefault("ASSESSMENT_SERVICE_TOKEN", "openapi-export-token")

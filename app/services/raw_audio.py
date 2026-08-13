@@ -80,6 +80,35 @@ class RawAudioSegmentRecorder:
             logger.exception("Could not upload original microphone segment")
             return None
 
+    async def stop_and_upload_guided(
+        self,
+        session_id: str,
+        attempt_id: str,
+        *,
+        upload: bool = True,
+    ) -> str | None:
+        async with self._lock:
+            self._active = False
+            pcm = bytes(self._buffer)
+            self._buffer.clear()
+        if not pcm or not upload:
+            return None
+        output = io.BytesIO()
+        with wave.open(output, "wb") as wav:
+            wav.setnchannels(self.channels)
+            wav.setsampwidth(2)
+            wav.setframerate(self.sample_rate)
+            wav.writeframes(pcm)
+        try:
+            return await self.client.upload_guided_audio_async(
+                session_id,
+                attempt_id,
+                output.getvalue(),
+            )
+        except Exception:
+            logger.exception("Could not upload original guided-practice segment")
+            return None
+
     async def close(self) -> None:
         if self._stream_task:
             self._stream_task.cancel()

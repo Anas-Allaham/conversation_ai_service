@@ -10,6 +10,8 @@ from app.realtime.assessment_payload import (
     valid_submission_words,
 )
 from app.realtime.assessment_turns import assessment_endpointing_options
+
+
 @dataclass
 class FakeTimedString:
     text: str

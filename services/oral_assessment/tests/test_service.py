@@ -13,6 +13,7 @@ from services.oral_assessment.models import (
     PromptKind,
     PronunciationDiagnostic,
     ResponseSubmission,
+    WordTiming,
 )
 from services.oral_assessment.repository import SQLRepository
 from services.oral_assessment.rubric_evaluator import ScriptedEvaluator
@@ -228,6 +229,42 @@ class ServiceTests(unittest.TestCase):
         self.assertLess(final.confidence_score, 100)
         self.assertIn("fluency", final.profile_scores_percent)
         self.assertEqual("complete", service.progress(record).current_section)
+
+    def test_result_contains_authoritative_feature_based_fluency(self) -> None:
+        service = self._service(
+            [
+                evaluator_output(CEFRLevel.A1, 1),
+                evaluator_output(CEFRLevel.A1, 1),
+                evaluator_output(CEFRLevel.A1, 1),
+            ]
+        )
+        created = service.create_assessment(AssessmentCreateRequest(user_id="timed-learner"))
+        record = self.repository.get_assessment(created.assessment_id)
+        for index in range(4):
+            prompt = service.current_prompt(record)
+            submission = self.submission(prompt, 400 + index).model_copy(
+                update={
+                    "words": [
+                        WordTiming(
+                            word=f"word{word_index}",
+                            start=word_index * 0.5,
+                            end=word_index * 0.5 + 0.24,
+                        )
+                        for word_index in range(14)
+                    ]
+                }
+            )
+            service.submit_response(created.assessment_id, submission)
+            record = self.repository.get_assessment(created.assessment_id)
+        final = service.get_result(created.assessment_id)
+        self.assertEqual("scored", final.fluency.status.value)
+        self.assertIsNotNone(final.fluency.fluency_index)
+        self.assertEqual(final.fluency.cefr_fluency_estimate, final.profile["fluency"])
+        self.assertEqual(
+            final.fluency.fluency_index,
+            final.profile_scores_percent["fluency"],
+        )
+        self.assertEqual("fluency-v0.1", final.versions.fluency)
 
 
 if __name__ == "__main__":

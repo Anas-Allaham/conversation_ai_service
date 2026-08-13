@@ -59,6 +59,10 @@ class Settings:
     s3_kms_key_id: str
     pronunciation_service_url: str
     pronunciation_service_token: str
+    guided_service_public_url: str
+    livekit_url: str
+    livekit_api_key: str
+    livekit_api_secret: str
 
     @classmethod
     def from_env(cls, project_root: Path | None = None) -> Settings:
@@ -86,11 +90,9 @@ class Settings:
             openai_model=os.getenv("OPENAI_MODEL", "gpt-5.6"),
             evaluator_timeout_seconds=_float("EVALUATOR_TIMEOUT_SECONDS", 15.0),
             evaluator_max_retries=_int("EVALUATOR_MAX_RETRIES", 3),
-            evaluator_max_retry_wait_seconds=_float(
-                "EVALUATOR_MAX_RETRY_WAIT_SECONDS", 60.0
-            ),
+            evaluator_max_retry_wait_seconds=_float("EVALUATOR_MAX_RETRY_WAIT_SECONDS", 60.0),
             allow_heuristic_evaluator=_bool("ALLOW_HEURISTIC_EVALUATOR", False),
-            assessment_version=os.getenv("ASSESSMENT_VERSION", "0.3.0"),
+            assessment_version=os.getenv("ASSESSMENT_VERSION", "0.6.0"),
             item_bank_version=os.getenv("ITEM_BANK_VERSION", "0.2.0"),
             rubric_version=os.getenv("RUBRIC_VERSION", "0.3.0"),
             scorer_version=os.getenv("SCORER_VERSION", "0.3.0"),
@@ -106,13 +108,25 @@ class Settings:
             s3_kms_key_id=os.getenv("S3_KMS_KEY_ID", ""),
             pronunciation_service_url=os.getenv("PRONUNCIATION_SERVICE_URL", ""),
             pronunciation_service_token=os.getenv("PRONUNCIATION_SERVICE_TOKEN", ""),
+            guided_service_public_url=os.getenv("GUIDED_SERVICE_PUBLIC_URL", ""),
+            livekit_url=os.getenv("LIVEKIT_URL", ""),
+            livekit_api_key=os.getenv("LIVEKIT_API_KEY", ""),
+            livekit_api_secret=os.getenv("LIVEKIT_API_SECRET", ""),
         )
 
     @property
     def item_bank_path(self) -> Path:
-        return self.project_root / "services" / "oral_assessment" / "data" / (
-            f"item_bank_v{self.item_bank_version}.json"
+        return (
+            self.project_root
+            / "services"
+            / "oral_assessment"
+            / "data"
+            / (f"item_bank_v{self.item_bank_version}.json")
         )
+
+    @property
+    def guided_scenario_path(self) -> Path:
+        return self.project_root / "services" / "guided_conversation" / "content"
 
     def readiness_errors(self) -> list[str]:
         errors: list[str] = []
@@ -121,7 +135,9 @@ class Settings:
         elif self.evaluator_provider == "openai" and not self.openai_api_key:
             errors.append("OPENAI_API_KEY is required for EVALUATOR_PROVIDER=openai")
         elif self.evaluator_provider == "heuristic" and not self.allow_heuristic_evaluator:
-            errors.append("Heuristic evaluation is disabled; set ALLOW_HEURISTIC_EVALUATOR=true only for demos")
+            errors.append(
+                "Heuristic evaluation is disabled; set ALLOW_HEURISTIC_EVALUATOR=true only for demos"
+            )
         elif self.evaluator_provider not in {"gemini", "openai", "heuristic"}:
             errors.append(f"Unsupported evaluator provider: {self.evaluator_provider}")
         if self.service_token in {"", "dev-service-token"}:
@@ -150,4 +166,6 @@ class Settings:
                     errors.append("AUDIO_ENCRYPTION_KEY must be a valid 44-character Fernet key")
         if not self.item_bank_path.exists():
             errors.append(f"Item bank not found: {self.item_bank_path}")
+        if not self.guided_scenario_path.exists():
+            errors.append(f"Guided scenario catalog not found: {self.guided_scenario_path}")
         return errors

@@ -13,6 +13,7 @@ from .models import (
     FluencySessionResult,
     FluencySubscores,
     FluencyWord,
+    PracticeMode,
 )
 from .scorer import FLUENCY_SCORER_VERSION, assessment_dimension_score, score_observation
 
@@ -28,6 +29,7 @@ __all__ = [
     "FluencySessionResult",
     "FluencySubscores",
     "FluencyWord",
+    "PracticeMode",
     "aggregate_session",
     "assessment_dimension_score",
     "extract_features",

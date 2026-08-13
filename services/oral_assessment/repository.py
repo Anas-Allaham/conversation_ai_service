@@ -10,6 +10,10 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from services.fluency.models import FluencyObservationResult
+from services.guided_conversation.models import (
+    GuidedAttemptResult,
+    GuidedSessionRecord,
+)
 
 from .models import (
     AssessmentRecord,
@@ -51,6 +55,13 @@ class AssessmentRepository(Protocol):
     def save_fluency_observation(self, result: FluencyObservationResult) -> FluencyObservationResult: ...
     def get_fluency_observation(self, session_id: str, turn_id: str) -> FluencyObservationResult | None: ...
     def list_fluency_observations(self, session_id: str) -> list[FluencyObservationResult]: ...
+    def create_guided_session(self, record: GuidedSessionRecord, correlation_id: str = "") -> None: ...
+    def get_guided_session(self, session_id: str) -> GuidedSessionRecord | None: ...
+    def save_guided_record(self, record: GuidedSessionRecord, event_type: str = "guided.session_updated") -> None: ...
+    def save_guided_transition(self, record: GuidedSessionRecord, idempotency_key: str, result: GuidedAttemptResult, correlation_id: str = "") -> None: ...
+    def get_guided_attempt_replay(self, session_id: str, idempotency_key: str) -> GuidedAttemptResult | None: ...
+    def save_guided_audio(self, session_id: str, attempt_id: str, audio_uri: str) -> None: ...
+    def get_guided_audio(self, session_id: str, attempt_id: str) -> str | None: ...
 
 
 MIGRATIONS_ROOT = Path(__file__).with_name("migrations")
@@ -382,3 +393,177 @@ class SQLRepository:
             FluencyObservationResult.model_validate_json(row["result_json"])
             for row in rows
         ]
+
+    def create_guided_session(
+        self,
+        record: GuidedSessionRecord,
+        correlation_id: str = "",
+    ) -> None:
+        with self._lock, self._connection() as connection, connection:
+            connection.execute(
+                self._query(
+                    "INSERT INTO guided_sessions(session_id,user_id,scenario_id,status,record_json,revision,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)"
+                ),
+                (
+                    record.session_id,
+                    record.user_id,
+                    record.scenario_id,
+                    record.status.value,
+                    record.model_dump_json(),
+                    record.revision,
+                    record.created_at.isoformat(),
+                    record.updated_at.isoformat(),
+                ),
+            )
+        self.audit(
+            "guided.session_created",
+            {
+                "scenario_id": record.scenario_id,
+                "scenario_version": record.scenario_version,
+                "placement_level": record.placement_level_at_start.value,
+            },
+            record.session_id,
+            correlation_id,
+        )
+
+    def get_guided_session(self, session_id: str) -> GuidedSessionRecord | None:
+        with self._connection() as connection:
+            row = connection.execute(
+                self._query(
+                    "SELECT record_json,revision FROM guided_sessions WHERE session_id=?"
+                ),
+                (session_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        record = GuidedSessionRecord.model_validate_json(row["record_json"])
+        return record.model_copy(update={"revision": int(row["revision"])})
+
+    def save_guided_record(
+        self,
+        record: GuidedSessionRecord,
+        event_type: str = "guided.session_updated",
+    ) -> None:
+        expected_revision = record.revision
+        updated = record.model_copy(update={"revision": expected_revision + 1})
+        with self._lock, self._connection() as connection, connection:
+            cursor = connection.execute(
+                self._query(
+                    "UPDATE guided_sessions SET status=?,record_json=?,revision=?,updated_at=? WHERE session_id=? AND revision=?"
+                ),
+                (
+                    updated.status.value,
+                    updated.model_dump_json(),
+                    updated.revision,
+                    updated.updated_at.isoformat(),
+                    updated.session_id,
+                    expected_revision,
+                ),
+            )
+            if cursor.rowcount != 1:
+                raise ConcurrencyConflict(
+                    f"Guided session {record.session_id} changed concurrently"
+                )
+        record.revision = updated.revision
+        self.audit(event_type, {"state": record.state.value}, record.session_id)
+
+    def save_guided_transition(
+        self,
+        record: GuidedSessionRecord,
+        idempotency_key: str,
+        result: GuidedAttemptResult,
+        correlation_id: str = "",
+    ) -> None:
+        expected_revision = record.revision
+        updated = record.model_copy(update={"revision": expected_revision + 1})
+        with self._lock, self._connection() as connection, connection:
+            replay = connection.execute(
+                self._query(
+                    "SELECT api_result_json FROM guided_attempt_replays WHERE session_id=? AND idempotency_key=?"
+                ),
+                (record.session_id, idempotency_key),
+            ).fetchone()
+            if replay is not None:
+                return
+            cursor = connection.execute(
+                self._query(
+                    "UPDATE guided_sessions SET status=?,record_json=?,revision=?,updated_at=? WHERE session_id=? AND revision=?"
+                ),
+                (
+                    updated.status.value,
+                    updated.model_dump_json(),
+                    updated.revision,
+                    updated.updated_at.isoformat(),
+                    updated.session_id,
+                    expected_revision,
+                ),
+            )
+            if cursor.rowcount != 1:
+                raise ConcurrencyConflict(
+                    f"Guided session {record.session_id} changed concurrently"
+                )
+            connection.execute(
+                self._query(
+                    "INSERT INTO guided_attempt_replays(session_id,attempt_id,idempotency_key,api_result_json,created_at) VALUES(?,?,?,?,?)"
+                ),
+                (
+                    record.session_id,
+                    result.attempt_id,
+                    idempotency_key,
+                    result.model_dump_json(),
+                    utc_now().isoformat(),
+                ),
+            )
+        record.revision = updated.revision
+        self.audit(
+            "guided.turn_observed",
+            {
+                "attempt_id": result.attempt_id,
+                "state": record.state.value,
+                "retry_recommended": result.retry_recommended,
+                "fluency_status": result.fluency.status.value,
+            },
+            record.session_id,
+            correlation_id,
+        )
+
+    def get_guided_attempt_replay(
+        self,
+        session_id: str,
+        idempotency_key: str,
+    ) -> GuidedAttemptResult | None:
+        with self._connection() as connection:
+            row = connection.execute(
+                self._query(
+                    "SELECT api_result_json FROM guided_attempt_replays WHERE session_id=? AND idempotency_key=?"
+                ),
+                (session_id, idempotency_key),
+            ).fetchone()
+        if row is None:
+            return None
+        result = GuidedAttemptResult.model_validate_json(row["api_result_json"])
+        return result.model_copy(update={"idempotent_replay": True})
+
+    def save_guided_audio(
+        self,
+        session_id: str,
+        attempt_id: str,
+        audio_uri: str,
+    ) -> None:
+        with self._lock, self._connection() as connection, connection:
+            connection.execute(
+                self._query(
+                    "INSERT INTO guided_audio_assets(session_id,attempt_id,audio_uri,created_at) VALUES(?,?,?,?) ON CONFLICT(session_id,attempt_id) DO UPDATE SET audio_uri=excluded.audio_uri"
+                ),
+                (session_id, attempt_id, audio_uri, utc_now().isoformat()),
+            )
+
+    def get_guided_audio(self, session_id: str, attempt_id: str) -> str | None:
+        with self._connection() as connection:
+            row = connection.execute(
+                self._query(
+                    "SELECT audio_uri FROM guided_audio_assets WHERE session_id=? AND attempt_id=?"
+                ),
+                (session_id, attempt_id),
+            ).fetchone()
+        return None if row is None else str(row["audio_uri"])

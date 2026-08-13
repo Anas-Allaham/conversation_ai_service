@@ -31,6 +31,8 @@ from app.realtime.conversation_fluency import (
     ConversationFluencyTracker,
     conversation_mode,
 )
+from app.realtime.guided_conversation import run_guided_conversation_session
+from services.fluency.models import PracticeMode
 
 # ============================================================
 # ENVIRONMENT
@@ -523,14 +525,25 @@ async def english_tutor_session(
         threading.current_thread().name,
     )
 
+    mode = conversation_mode(ctx)
     stt = build_stt()
     vad = build_vad()
-    llm = build_llm()
     tts = build_tts()
-    mode = conversation_mode(ctx.room)
+    if mode == PracticeMode.GUIDED:
+        await run_guided_conversation_session(
+            ctx,
+            stt=stt,
+            vad=vad,
+            tts=tts,
+            audio_input_options=build_audio_input_options(),
+            aec_warmup_duration=env_float("AEC_WARMUP_SECONDS", 1.0),
+        )
+        return
+
+    llm = build_llm()
     fluency_tracker = ConversationFluencyTracker(
         session_id=ctx.room.name,
-        mode=mode,
+        mode=PracticeMode.FREE,
     )
 
     session = AgentSession(

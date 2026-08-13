@@ -17,6 +17,13 @@ class FluencyMode(str, Enum):
     FREE = "free"
 
 
+class PracticeMode(str, Enum):
+    """The only two learner-selectable practice modes in the application."""
+
+    FREE = "free"
+    GUIDED = "guided"
+
+
 class FluencyScoreStatus(str, Enum):
     SCORED = "scored"
     INSUFFICIENT_EVIDENCE = "insufficient_evidence"

@@ -78,9 +78,13 @@ class AssessmentClient:
         token: str | None = None,
         timeout_seconds: float | None = None,
     ) -> None:
-        self.base_url = (base_url or os.getenv("ASSESSMENT_SERVICE_URL", "http://127.0.0.1:8080")).rstrip("/")
+        self.base_url = (
+            base_url or os.getenv("ASSESSMENT_SERVICE_URL", "http://127.0.0.1:8080")
+        ).rstrip("/")
         self.token = token or os.getenv("ASSESSMENT_SERVICE_TOKEN", "")
-        self.timeout = timeout_seconds or float(os.getenv("ASSESSMENT_REQUEST_TIMEOUT_SECONDS", "90"))
+        self.timeout = timeout_seconds or float(
+            os.getenv("ASSESSMENT_REQUEST_TIMEOUT_SECONDS", "90")
+        )
         self.breaker = CircuitBreaker()
         self._lock = threading.Lock()
 
@@ -215,7 +219,9 @@ class AssessmentClient:
         )
 
     def get_result(self, assessment_id: str) -> dict[str, Any]:
-        return self._request("GET", f"/v1/assessments/{assessment_id}/result", retry_idempotently=True)
+        return self._request(
+            "GET", f"/v1/assessments/{assessment_id}/result", retry_idempotently=True
+        )
 
     def get_assessment_state(self, assessment_id: str) -> dict[str, Any]:
         return self._request("GET", f"/v1/assessments/{assessment_id}", retry_idempotently=True)
@@ -236,6 +242,44 @@ class AssessmentClient:
         return self._request(
             "GET",
             f"/v1/fluency/sessions/{session_id}?mode={mode}",
+            retry_idempotently=True,
+        )
+
+    def get_guided_session(self, session_id: str) -> dict[str, Any]:
+        return self._request(
+            "GET",
+            f"/v1/guided-conversations/sessions/{session_id}",
+            retry_idempotently=True,
+        )
+
+    def mark_guided_prompt_ready(self, session_id: str) -> dict[str, Any]:
+        return self._request(
+            "POST",
+            f"/v1/guided-conversations/sessions/{session_id}/prompt-ready",
+            payload={},
+            retry_idempotently=True,
+        )
+
+    def submit_guided_attempt(
+        self,
+        session_id: str,
+        payload: dict[str, Any],
+    ) -> dict[str, Any]:
+        return self._request(
+            "POST",
+            f"/v1/guided-conversations/sessions/{session_id}/attempts",
+            payload=payload,
+            headers={"Idempotency-Key": str(payload["idempotency_key"])},
+            retry_idempotently=True,
+        )
+
+    def guided_control(self, session_id: str, command: str) -> dict[str, Any]:
+        if command not in {"continue", "retry", "pause", "resume", "stop"}:
+            raise ValueError("Unsupported guided conversation command")
+        return self._request(
+            "POST",
+            f"/v1/guided-conversations/sessions/{session_id}/{command}",
+            payload={},
             retry_idempotently=True,
         )
 
@@ -261,10 +305,36 @@ class AssessmentClient:
         )
         return str(result["audio_uri"])
 
-    async def create_assessment_async(self, user_id: str, interface_language: str = "en") -> dict[str, Any]:
+    def upload_guided_audio(
+        self,
+        session_id: str,
+        attempt_id: str,
+        wav_bytes: bytes,
+    ) -> str:
+        boundary = f"----guided-{uuid.uuid4().hex}"
+        prefix = (
+            f"--{boundary}\r\n"
+            'Content-Disposition: form-data; name="audio"; filename="raw.wav"\r\n'
+            "Content-Type: audio/wav\r\n\r\n"
+        ).encode()
+        body = prefix + wav_bytes + f"\r\n--{boundary}--\r\n".encode()
+        result = self._request(
+            "POST",
+            f"/v1/guided-conversations/sessions/{session_id}/audio/{attempt_id}",
+            raw_body=body,
+            headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
+            retry_idempotently=False,
+        )
+        return str(result["audio_uri"])
+
+    async def create_assessment_async(
+        self, user_id: str, interface_language: str = "en"
+    ) -> dict[str, Any]:
         return await asyncio.to_thread(self.create_assessment, user_id, interface_language)
 
-    async def submit_response_async(self, assessment_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    async def submit_response_async(
+        self, assessment_id: str, payload: dict[str, Any]
+    ) -> dict[str, Any]:
         return await asyncio.to_thread(self.submit_response, assessment_id, payload)
 
     async def get_result_async(self, assessment_id: str) -> dict[str, Any]:
@@ -287,5 +357,40 @@ class AssessmentClient:
     ) -> dict[str, Any]:
         return await asyncio.to_thread(self.get_fluency_session, session_id, mode)
 
-    async def upload_audio_async(self, assessment_id: str, response_id: str, wav_bytes: bytes) -> str:
+    async def get_guided_session_async(self, session_id: str) -> dict[str, Any]:
+        return await asyncio.to_thread(self.get_guided_session, session_id)
+
+    async def mark_guided_prompt_ready_async(self, session_id: str) -> dict[str, Any]:
+        return await asyncio.to_thread(self.mark_guided_prompt_ready, session_id)
+
+    async def submit_guided_attempt_async(
+        self,
+        session_id: str,
+        payload: dict[str, Any],
+    ) -> dict[str, Any]:
+        return await asyncio.to_thread(self.submit_guided_attempt, session_id, payload)
+
+    async def guided_control_async(
+        self,
+        session_id: str,
+        command: str,
+    ) -> dict[str, Any]:
+        return await asyncio.to_thread(self.guided_control, session_id, command)
+
+    async def upload_audio_async(
+        self, assessment_id: str, response_id: str, wav_bytes: bytes
+    ) -> str:
         return await asyncio.to_thread(self.upload_audio, assessment_id, response_id, wav_bytes)
+
+    async def upload_guided_audio_async(
+        self,
+        session_id: str,
+        attempt_id: str,
+        wav_bytes: bytes,
+    ) -> str:
+        return await asyncio.to_thread(
+            self.upload_guided_audio,
+            session_id,
+            attempt_id,
+            wav_bytes,
+        )

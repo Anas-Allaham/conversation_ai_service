@@ -36,27 +36,29 @@ def _interpolate(value: float, points: list[tuple[float, float]]) -> float:
 def _subscores(features: FluencyFeatures, request: FluencyObservationRequest) -> FluencySubscores:
     speech_rate_score = _interpolate(
         features.speech_rate_wpm,
-        [(0, 0), (30, 20), (50, 45), (70, 70), (90, 90), (110, 100), (170, 100), (210, 75), (250, 40)],
+        [
+            (0, 0),
+            (30, 20),
+            (50, 45),
+            (70, 70),
+            (90, 90),
+            (110, 100),
+            (170, 100),
+            (210, 75),
+            (250, 40),
+        ],
     )
     articulation_score = _interpolate(
         features.articulation_rate_wpm,
         [(0, 0), (60, 30), (90, 65), (120, 90), (150, 100), (220, 100), (260, 75), (300, 45)],
     )
-    stability_score = (
-        100.0 if features.pace_stability is None else features.pace_stability * 100.0
-    )
+    stability_score = 100.0 if features.pace_stability is None else features.pace_stability * 100.0
     speed = 0.55 * speech_rate_score + 0.30 * articulation_score + 0.15 * stability_score
 
-    pause_ratio_score = 100.0 * (
-        1.0 - _clamp((features.pause_ratio - 0.08) / 0.55, 0.0, 1.0)
-    )
+    pause_ratio_score = 100.0 * (1.0 - _clamp((features.pause_ratio - 0.08) / 0.55, 0.0, 1.0))
     long_pause_score = 100.0 - min(100.0, features.long_pauses_per_minute * 18.0)
-    pause_frequency_score = 100.0 - min(
-        100.0, max(0.0, features.pauses_per_minute - 2.0) * 7.0
-    )
-    breakdown = (
-        0.55 * pause_ratio_score + 0.30 * long_pause_score + 0.15 * pause_frequency_score
-    )
+    pause_frequency_score = 100.0 - min(100.0, max(0.0, features.pauses_per_minute - 2.0) * 7.0)
+    breakdown = 0.55 * pause_ratio_score + 0.30 * long_pause_score + 0.15 * pause_frequency_score
 
     mean_run_score = _interpolate(
         features.mean_length_of_run_words,
@@ -78,9 +80,7 @@ def _subscores(features: FluencyFeatures, request: FluencyObservationRequest) ->
         else 0.0
     )
     corrections_per_100 = (
-        features.self_correction_count / features.word_count * 100.0
-        if features.word_count
-        else 0.0
+        features.self_correction_count / features.word_count * 100.0 if features.word_count else 0.0
     )
     # Repair has the smallest overall weight. Successful self-correction is a
     # weak penalty because it can demonstrate control rather than breakdown.
@@ -138,17 +138,25 @@ def _insufficiency_reasons(
     settings: FluencySettings,
 ) -> list[str]:
     reasons: list[str] = []
+    minimum_words = (
+        settings.guided_minimum_turn_words
+        if request.mode.value == "guided"
+        else settings.minimum_turn_words
+    )
+    minimum_seconds = (
+        settings.guided_minimum_turn_seconds
+        if request.mode.value == "guided"
+        else settings.minimum_turn_seconds
+    )
     if request.explicit_audio_issue:
         reasons.append(request.audio_issue_reason or "The audio was marked unusable.")
     if features.timing_source != "word_timestamps":
         reasons.append("Word-level timestamps were unavailable.")
-    if features.word_count < settings.minimum_turn_words:
+    if features.word_count < minimum_words:
+        reasons.append(f"The turn contained fewer than {minimum_words} timed words.")
+    if features.response_duration_seconds < minimum_seconds:
         reasons.append(
-            f"The turn contained fewer than {settings.minimum_turn_words} timed words."
-        )
-    if features.response_duration_seconds < settings.minimum_turn_seconds:
-        reasons.append(
-            f"The turn contained less than {settings.minimum_turn_seconds:.1f} seconds of timed evidence."
+            f"The turn contained less than {minimum_seconds:.1f} seconds of timed evidence."
         )
     return reasons
 
@@ -215,7 +223,9 @@ def cefr_estimate_from_index(index: int) -> str:
     return demonstrated
 
 
-def assessment_dimension_score(observation: FluencyObservationResult, target_level: str) -> int | None:
+def assessment_dimension_score(
+    observation: FluencyObservationResult, target_level: str
+) -> int | None:
     """Map an explainable index to the assessment's 0-4 target-level rubric.
 
     The anchors are provisional engineering thresholds. They are versioned and

@@ -50,7 +50,7 @@ The result also contains a `fluency` object from `fluency-v0.1`. Its
 `fluency_index` is an explainable 0-100 index, not a percentage or probability.
 It includes separate confidence, evidence counts, four subscores, feedback, and
 the scorer version. The controlled assessment may include
-`cefr_fluency_estimate`; guided/free session results must not.
+`cefr_fluency_estimate`; guided and free practice results must not.
 
 Important fields for the application backend are:
 
@@ -120,25 +120,82 @@ the learner-data policy required by your application.
 ## Mode routing
 
 ```text
-mode=guided               -> english-tutor -> shared fluency service
-mode=free                 -> english-tutor -> shared fluency service
-mode=placement_assessment -> english-level-assessor -> assessment + shared fluency service
+practice mode=free   -> english-tutor -> dynamic LLM conversation + shared fluency service
+practice mode=guided -> english-tutor -> deterministic scenario service + shared fluency scorer
+assessment flow      -> english-level-assessor -> assessment + shared fluency service
 ```
 
-For tutor sessions, set LiveKit room metadata to
-`{"conversation_mode":"guided"}` or `{"conversation_mode":"free"}`. The
-voice worker only transports Flux timestamps. Scoring logic remains in
-`services/fluency`, never in the LLM prompt or browser.
+The public `PracticeMode` enum contains only `free` and `guided`. The removed
+0.4.0 value `scripted`, convenience aliases, and placement assessment are not
+valid practice-mode values. Invalid values receive HTTP 422 or are rejected by
+the worker instead of silently falling back to free conversation.
+
+Create either mode through `POST /v1/practice-sessions`. The endpoint issues a
+short-lived participant token whose room configuration explicitly dispatches
+`english-tutor`. LiveKit job metadata is authoritative; room metadata is retained
+only as a compatibility fallback for an existing integration.
 
 Submit and retrieve rolling conversation fluency through:
 
 - `POST /v1/fluency/sessions/{session_id}/turns`
-- `GET /v1/fluency/sessions/{session_id}?mode=guided|free`
+- `GET /v1/fluency/sessions/{session_id}?mode=free`
 
 Short replies remain valid conversation turns but are excluded from scoring.
 The endpoint returns `insufficient_evidence` until the session has at least
 three eligible turns and either five eligible turns or 30 seconds of learner
 speech. See `docs/fluency/fluency_v0_1.md` for the full contract.
+
+## Practice-session integration
+
+Do not accept placement level from the browser. The BFF reads its authoritative user/placement
+record, then calls the service using the service token. An incomplete placement locks all guided
+scenarios; a lower placement still sees higher cards as locked, while direct preview and start
+attempts receive HTTP 403.
+
+Recommended BFF sequence:
+
+1. List `GET /v1/guided-conversations/domains` with trusted placement query parameters; each
+   domain contains its scenario summaries.
+2. Preview `GET /v1/guided-conversations/scenarios/{id}` with the same parameters.
+3. Create `POST /v1/practice-sessions` with `mode=guided`, user ID, selected scenario,
+   authoritative placement status/level, recording consent, and optional `confidence_before`.
+4. Return the supplied LiveKit URL, short-lived participant token, and learner-safe
+   `guided_session` view to the browser.
+
+```json
+{
+  "user_id": "user-123",
+  "mode": "guided",
+  "scenario_id": "restaurant.order_drink.a1",
+  "placement_completed": true,
+  "placement_level": "A1",
+  "recording_consent": false
+}
+```
+
+The session endpoint signs a LiveKit room configuration containing
+`{"conversation_mode":"guided","guided_session_id":"guided-..."}`. For free
+conversation, send only `{"user_id":"user-123","mode":"free"}`; the dispatch
+metadata then contains `{"conversation_mode":"free"}` and the worker creates the
+dynamic LLM pipeline.
+
+The guided LiveKit worker publishes UI events on `guided.events` and accepts `retry`,
+`continue`, `replay`, `replay_slow`, `pause`, `resume`, and `stop` on `guided.command`. The
+browser uses ephemeral `conversation_turn` payloads to maintain visible conversation history and
+render word-recognition confidence colors. Do not treat these packets as durable state; refresh
+`GET /v1/guided-conversations/sessions/{id}` after reconnecting.
+
+The guided report separates pronunciation, `guided_speaking_fluency`, delivery stability, and
+self-reported confidence. It never includes a CEFR fluency estimate and must never update the user's
+placement record. See `docs/guided_conversations/guided_mode_v0_2.md` and
+`examples/frontend/guided-conversation.ts`.
+
+Retrieve learner-safe practice output through the unified route:
+
+```http
+GET /v1/practice-sessions/{practice_session_id}/result?mode=guided
+GET /v1/practice-sessions/{practice_session_id}/result?mode=free
+```
 
 ## Audio and pronunciation
 

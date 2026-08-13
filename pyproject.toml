@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "realtime-english-tutor-assessment"
-version = "0.1.0"
-description = "CEFR-aligned adaptive oral placement assessment for the real-time English tutor"
+version = "0.6.0"
+description = "Adaptive oral placement and deterministic guided practice for the real-time English tutor"
 requires-python = ">=3.11,<3.14"
 dependencies = [
   "fastapi>=0.116,<1.0",
@@ -14,7 +14,7 @@ dependencies = [
   "python-dotenv>=1.1,<2.0",
   "python-multipart>=0.0.20,<1.0",
   "cryptography>=45,<47",
-  "google-genai>=1.29,<2.0",
+  "google-genai>=1.75,<2.0",
   "openai>=1.99,<3.0",
   "psycopg[binary,pool]>=3.2,<4.0",
   "boto3>=1.40,<2.0",
@@ -30,6 +30,7 @@ dev = [
   "pytest-asyncio>=1.1,<2.0",
   "httpx>=0.28,<1.0",
   "ruff>=0.12,<1.0",
+  "pyyaml>=6.0,<7.0",
 ]
 
 [tool.setuptools.packages.find]
@@ -42,4 +43,6 @@ target-version = "py311"
 [tool.pytest.ini_options]
 testpaths = ["services/oral_assessment/tests"]
 pythonpath = ["."]
-
+filterwarnings = [
+  "ignore:Using `httpx` with `starlette.testclient` is deprecated.*",
+]

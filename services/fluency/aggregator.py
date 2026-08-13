@@ -17,9 +17,7 @@ from .scorer import cefr_estimate_from_index
 
 def _evidence(observations: Sequence[FluencyObservationResult]) -> FluencyEvidenceCount:
     eligible = [item for item in observations if item.eligible]
-    timestamped = sum(
-        item.evidence_count.timestamped_turns for item in observations
-    )
+    timestamped = sum(item.evidence_count.timestamped_turns for item in observations)
     total = len(observations)
     return FluencyEvidenceCount(
         eligible_turns=len(eligible),
@@ -47,6 +45,19 @@ def _enough_evidence(
         if evidence.learner_speech_seconds < settings.assessment_minimum_speech_seconds:
             reasons.append(
                 f"At least {settings.assessment_minimum_speech_seconds:.0f} seconds of learner speech are required."
+            )
+    elif mode == FluencyMode.GUIDED:
+        if evidence.eligible_turns < settings.guided_minimum_turns:
+            reasons.append(
+                f"At least {settings.guided_minimum_turns} eligible guided lines are required."
+            )
+        if (
+            evidence.eligible_turns < settings.guided_target_turns
+            and evidence.learner_speech_seconds < settings.guided_minimum_speech_seconds
+        ):
+            reasons.append(
+                f"Collect {settings.guided_target_turns} eligible guided lines or about "
+                f"{settings.guided_minimum_speech_seconds:.0f} seconds of learner speech."
             )
     else:
         if evidence.eligible_turns < settings.conversation_minimum_turns:

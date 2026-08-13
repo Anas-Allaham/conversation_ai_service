@@ -62,7 +62,10 @@ class SecurityAndObservabilityMiddleware(BaseHTTPMiddleware):
     def _expected_token(self, path: str) -> str:
         if path.startswith("/v1/admin"):
             return self.settings.admin_token
-        if path == "/v1/pronunciation/callback":
+        if path in {
+            "/v1/pronunciation/callback",
+            "/v1/guided-conversations/pronunciation/callback",
+        }:
             return self.settings.pronunciation_service_token
         return self.settings.service_token
 

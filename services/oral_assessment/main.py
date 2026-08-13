@@ -9,6 +9,15 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from services.fluency.api import router as fluency_router
+from services.guided_conversation.api import (
+    install_exception_handlers as install_guided_exception_handlers,
+)
+from services.guided_conversation.api import router as guided_router
+from services.guided_conversation.catalog import ScenarioCatalogRepository
+from services.guided_conversation.pronunciation import GuidedPronunciationPublisher
+from services.guided_conversation.service import GuidedConversationService
+from services.practice_sessions.api import router as practice_sessions_router
+from services.practice_sessions.tokens import LiveKitTokenIssuer
 
 from .api import router
 from .config import Settings
@@ -57,9 +66,8 @@ def create_app(project_root: Path | None = None) -> FastAPI:
         audio_storage = None
         if settings.store_all_assessment_audio:
             detail = str(exc)
-            same_setting_reported = (
-                "AUDIO_ENCRYPTION_KEY" in detail
-                and any("AUDIO_ENCRYPTION_KEY" in error for error in readiness_errors)
+            same_setting_reported = "AUDIO_ENCRYPTION_KEY" in detail and any(
+                "AUDIO_ENCRYPTION_KEY" in error for error in readiness_errors
             )
             if not same_setting_reported and detail not in readiness_errors:
                 readiness_errors.append(detail)
@@ -71,12 +79,24 @@ def create_app(project_root: Path | None = None) -> FastAPI:
         item_bank,
         evaluator,
     )
+    scenario_catalog = ScenarioCatalogRepository(settings.guided_scenario_path)
+    guided_pronunciation_publisher = GuidedPronunciationPublisher(
+        settings.pronunciation_service_url,
+        settings.pronunciation_service_token,
+        settings.evaluator_timeout_seconds,
+    )
+    guided_service = GuidedConversationService(
+        repository,
+        scenario_catalog,
+        pronunciation_configured=guided_pronunciation_publisher.configured,
+        public_service_url=settings.guided_service_public_url,
+    )
     app = FastAPI(
-        title="Oral Assessment Service",
+        title="English Tutor Assessment and Practice Service",
         version=settings.assessment_version,
         description=(
-            "Original CEFR-aligned adaptive oral placement service. This service reports a "
-            "conversational interaction profile and does not issue official CEFR certification."
+            "CEFR-aligned adaptive oral placement plus deterministic guided role-play "
+            "practice. Guided practice does not issue or change CEFR placement."
         ),
         docs_url="/docs",
         redoc_url="/redoc",
@@ -85,6 +105,13 @@ def create_app(project_root: Path | None = None) -> FastAPI:
     app.state.repository = repository
     app.state.item_bank = item_bank
     app.state.assessment_service = assessment_service
+    app.state.guided_service = guided_service
+    app.state.guided_pronunciation_publisher = guided_pronunciation_publisher
+    app.state.livekit_token_issuer = LiveKitTokenIssuer(
+        settings.livekit_url,
+        settings.livekit_api_key,
+        settings.livekit_api_secret,
+    )
     app.state.audio_storage = audio_storage
     app.state.metrics = metrics
     app.state.readiness_errors = readiness_errors
@@ -95,11 +122,16 @@ def create_app(project_root: Path | None = None) -> FastAPI:
         "rubric": settings.rubric_version,
         "scorer": settings.scorer_version,
         "fluency": settings.fluency_version,
+        "guided_scenarios": scenario_catalog.content_version,
+        "guided_engine": "guided-engine-v0.2",
     }
     repository.set_runtime_setting("active_item_bank_version", item_bank.bank.version)
     app.add_middleware(SecurityAndObservabilityMiddleware, settings=settings, metrics=metrics)
     app.include_router(router)
     app.include_router(fluency_router)
+    app.include_router(guided_router)
+    app.include_router(practice_sessions_router)
+    install_guided_exception_handlers(app)
 
     @app.exception_handler(AssessmentNotFound)
     async def not_found(request: Request, exc: AssessmentNotFound):

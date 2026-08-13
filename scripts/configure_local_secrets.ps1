@@ -93,8 +93,8 @@ if ($audioKey -notmatch "^[A-Za-z0-9_-]{43}=$") {
 # Keep an existing installation on the code and item-bank versions shipped
 # with this release. Secrets and provider keys are preserved.
 $previousAssessmentVersion = Get-DotEnvValue $text "ASSESSMENT_VERSION"
-if ($previousAssessmentVersion -ne "0.3.0") {
-    $text = Set-DotEnvValue $text "ASSESSMENT_VERSION" "0.3.0"
+if ($previousAssessmentVersion -ne "0.6.0") {
+    $text = Set-DotEnvValue $text "ASSESSMENT_VERSION" "0.6.0"
     $changed = $true
 }
 
@@ -104,9 +104,23 @@ if ($previousAssessmentVersion -ne "0.3.0") {
 $geminiModel = Get-DotEnvValue $text "GEMINI_MODEL"
 if (
     [string]::IsNullOrWhiteSpace($geminiModel) -or
-    ($previousAssessmentVersion -ne "0.3.0" -and $geminiModel -eq "gemini-2.5-flash")
+    ($previousAssessmentVersion -ne "0.6.0" -and $geminiModel -eq "gemini-2.5-flash")
 ) {
     $text = Set-DotEnvValue $text "GEMINI_MODEL" "gemini-2.5-flash-lite"
+    $changed = $true
+}
+
+# Rename the 0.4.0 guided-engine callback setting without discarding an
+# already configured public service URL.
+$guidedServiceUrl = Get-DotEnvValue $text "GUIDED_SERVICE_PUBLIC_URL"
+$legacyGuidedServiceUrl = Get-DotEnvValue $text "SCRIPTED_SERVICE_PUBLIC_URL"
+if ([string]::IsNullOrWhiteSpace($guidedServiceUrl) -and -not [string]::IsNullOrWhiteSpace($legacyGuidedServiceUrl)) {
+    $text = Set-DotEnvValue $text "GUIDED_SERVICE_PUBLIC_URL" $legacyGuidedServiceUrl
+    $changed = $true
+}
+$legacyGuidedPattern = "(?m)^SCRIPTED_SERVICE_PUBLIC_URL=.*(?:\r?\n)?"
+if ([Regex]::IsMatch($text, $legacyGuidedPattern)) {
+    $text = [Regex]::Replace($text, $legacyGuidedPattern, "")
     $changed = $true
 }
 

@@ -1,8 +1,8 @@
 # Shared Fluency Measurement - `fluency-v0.1`
 
 Status: MVP engineering baseline  
-Applies to: controlled assessment, guided conversation, and free conversation  
-Release: 0.3.0
+Applies to: controlled assessment, guided fixed-scenario practice, and free conversation  
+Release: 0.6.0
 
 ## Construct and scope
 
@@ -119,7 +119,7 @@ rule requires a new scorer version.
 
 ## Evidence eligibility and confidence
 
-A single turn is eligible only when it contains:
+A free-conversation or assessment turn is eligible only when it contains:
 
 - word-level timestamps;
 - at least five timed words; and
@@ -129,8 +129,16 @@ Short conversational replies such as "Yes, I agree" are retained as total turns
 but do not receive an individual score and do not lower the session score.
 
 Controlled assessment requires at least two eligible responses and 12 seconds of
-learner speech. Guided/free conversation requires at least three eligible turns
-and either five eligible turns total or 30 seconds of learner speech.
+learner speech. Free practice requires at least three eligible turns and either
+five eligible turns total or 30 seconds of learner speech.
+
+Guided practice contains short predetermined lines, so release 0.6.0 applies a
+mode-specific gate: at least two timed words and 0.8 seconds per line. Its session
+requires at least three eligible lines and either five eligible lines total or
+eight seconds of eligible learner speech. This correction prevents a clear short
+script line from being rejected merely because it is not long enough for a free
+conversation turn. The report exposes every line's evidence and rejection reasons
+under `result_debug`.
 
 High session confidence requires broad timestamped evidence. The default is eight
 eligible turns and 60 seconds for conversation, or six eligible responses and 45
@@ -166,7 +174,7 @@ until enough timed evidence exists.
 
 ## API contract
 
-Submit one committed guided/free learner turn:
+Free conversation submits each committed learner turn through:
 
 ```http
 POST /v1/fluency/sessions/{session_id}/turns
@@ -178,7 +186,7 @@ Content-Type: application/json
 {
   "session_id": "room-123",
   "turn_id": "turn-7",
-  "mode": "guided",
+  "mode": "free",
   "transcript": "I chose the train because it is faster.",
   "words": [
     {"word": "I", "start": 0.0, "end": 0.18, "confidence": 0.97}
@@ -189,10 +197,14 @@ Content-Type: application/json
 ```
 
 The response contains both the per-turn observation and the rolling session result.
+Guided practice uses the same extractor and scorer inside the deterministic
+scenario service and exposes the aggregate at
+`GET /v1/practice-sessions/{id}/result?mode=guided`; its browser does not submit
+raw fluency observations directly.
 Retrieve the authoritative rolling result with:
 
 ```http
-GET /v1/fluency/sessions/{session_id}?mode=guided
+GET /v1/fluency/sessions/{session_id}?mode=free
 ```
 
 The browser should call the team's application backend, which maps this internal
@@ -224,8 +236,10 @@ should be made until the sample is large and representative enough for that clai
 - Word-based rates differ from the syllable-based rates used in some research.
 - Pause placement inside versus between syntactic units is not modeled in v0.1.
 - Prosody, pitch, stress, and intonation are not scored.
-- Task difficulty affects fluency; guided/free trends should compare similar task
-  contexts whenever possible.
+- Task difficulty affects fluency; practice trends should compare similar task
+  types and contexts whenever possible.
+- Guided results compare oral-reading delivery and must not be presented as
+  unrestricted speaking ability.
 - Arabic accent is not a fluency error, but ASR errors can reduce usable timing
   evidence. Low confidence should lead to more evidence, not a lower learner score.
 - The weights, piecewise bands, evidence gates, and CEFR anchors remain uncalibrated.

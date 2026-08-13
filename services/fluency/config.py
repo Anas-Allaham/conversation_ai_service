@@ -20,6 +20,11 @@ class FluencySettings:
     long_pause_threshold_seconds: float = 1.50
     minimum_turn_words: int = 5
     minimum_turn_seconds: float = 2.50
+    guided_minimum_turn_words: int = 2
+    guided_minimum_turn_seconds: float = 0.80
+    guided_minimum_turns: int = 3
+    guided_target_turns: int = 5
+    guided_minimum_speech_seconds: float = 8.0
     assessment_minimum_turns: int = 2
     assessment_minimum_speech_seconds: float = 12.0
     conversation_minimum_turns: int = 3
@@ -30,11 +35,14 @@ class FluencySettings:
     def from_env(cls) -> FluencySettings:
         settings = cls(
             pause_threshold_seconds=_float("FLUENCY_PAUSE_THRESHOLD_SECONDS", 0.50),
-            long_pause_threshold_seconds=_float(
-                "FLUENCY_LONG_PAUSE_THRESHOLD_SECONDS", 1.50
-            ),
+            long_pause_threshold_seconds=_float("FLUENCY_LONG_PAUSE_THRESHOLD_SECONDS", 1.50),
             minimum_turn_words=_int("FLUENCY_MINIMUM_TURN_WORDS", 5),
             minimum_turn_seconds=_float("FLUENCY_MINIMUM_TURN_SECONDS", 2.50),
+            guided_minimum_turn_words=_int("FLUENCY_GUIDED_MINIMUM_TURN_WORDS", 2),
+            guided_minimum_turn_seconds=_float("FLUENCY_GUIDED_MINIMUM_TURN_SECONDS", 0.80),
+            guided_minimum_turns=_int("FLUENCY_GUIDED_MINIMUM_TURNS", 3),
+            guided_target_turns=_int("FLUENCY_GUIDED_TARGET_TURNS", 5),
+            guided_minimum_speech_seconds=_float("FLUENCY_GUIDED_MINIMUM_SPEECH_SECONDS", 8.0),
             assessment_minimum_turns=_int("FLUENCY_ASSESSMENT_MINIMUM_TURNS", 2),
             assessment_minimum_speech_seconds=_float(
                 "FLUENCY_ASSESSMENT_MINIMUM_SPEECH_SECONDS", 12.0
@@ -53,4 +61,12 @@ class FluencySettings:
             )
         if settings.minimum_turn_words < 1 or settings.minimum_turn_seconds <= 0:
             raise RuntimeError("Fluency turn evidence thresholds must be positive")
+        if (
+            settings.guided_minimum_turn_words < 1
+            or settings.guided_minimum_turn_seconds <= 0
+            or settings.guided_minimum_turns < 1
+            or settings.guided_target_turns < settings.guided_minimum_turns
+            or settings.guided_minimum_speech_seconds <= 0
+        ):
+            raise RuntimeError("Guided fluency evidence thresholds are invalid")
         return settings

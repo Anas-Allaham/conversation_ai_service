@@ -4,7 +4,7 @@ pydantic<3.0,>=2.11
 python-dotenv<2.0,>=1.1
 python-multipart<1.0,>=0.0.20
 cryptography<47,>=45
-google-genai<2.0,>=1.29
+google-genai<2.0,>=1.75
 openai<3.0,>=1.99
 psycopg[binary,pool]<4.0,>=3.2
 boto3<2.0,>=1.40
@@ -14,6 +14,7 @@ pytest<9.0,>=8.4
 pytest-asyncio<2.0,>=1.1
 httpx<1.0,>=0.28
 ruff<1.0,>=0.12
+pyyaml<7.0,>=6.0
 
 [livekit]
 livekit-agents[deepgram,silero]==1.6.6

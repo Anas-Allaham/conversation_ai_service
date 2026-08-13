@@ -3,7 +3,12 @@ from __future__ import annotations
 import unittest
 
 from services.oral_assessment.branching_engine import decide_stage
-from services.oral_assessment.models import CEFRLevel, DimensionScores, ResponseDecision, StageDecision
+from services.oral_assessment.models import (
+    CEFRLevel,
+    DimensionScores,
+    ResponseDecision,
+    StageDecision,
+)
 from services.oral_assessment.scoring_engine import score_evaluator_output
 
 from .helpers import evaluator_output

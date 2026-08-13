@@ -40,6 +40,7 @@ class AssessmentTurnTests(unittest.TestCase):
             words=[{"word": "Excuse", "start": 0.0, "end": 0.4}],
             confidence=0.90,
             response_started_at_ms=1_000,
+            fragment_started_at_ms=1_000,
         )
         pending.add(
             prompt_id="A2_TRAVEL_002:main",
@@ -48,6 +49,7 @@ class AssessmentTurnTests(unittest.TestCase):
             words=[{"word": "When", "start": 0.0, "end": 0.3}],
             confidence=0.80,
             response_started_at_ms=4_000,
+            fragment_started_at_ms=4_000,
         )
         final_generation = pending.add(
             prompt_id="A2_TRAVEL_002:main",
@@ -56,6 +58,7 @@ class AssessmentTurnTests(unittest.TestCase):
             words=[{"word": "I", "start": 0.0, "end": 0.2}],
             confidence=0.85,
             response_started_at_ms=7_000,
+            fragment_started_at_ms=7_000,
         )
         self.assertFalse(pending.claim(first_generation))
         self.assertTrue(pending.claim(final_generation))
@@ -68,6 +71,8 @@ class AssessmentTurnTests(unittest.TestCase):
         self.assertAlmostEqual(0.85, pending.confidence or 0.0)
         self.assertLess(pending.words[0]["end"], pending.words[1]["start"])
         self.assertLess(pending.words[1]["end"], pending.words[2]["start"])
+        self.assertAlmostEqual(3.0, pending.words[1]["start"])
+        self.assertAlmostEqual(6.0, pending.words[2]["start"])
 
     def test_spoken_result_contains_only_placement_confidence_and_fluency(self) -> None:
         spoken = learner_result_announcement(

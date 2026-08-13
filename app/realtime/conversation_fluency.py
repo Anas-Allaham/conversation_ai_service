@@ -13,39 +13,59 @@ from app.realtime.assessment_payload import (
     valid_submission_words,
 )
 from app.services.assessment_client import AssessmentClient, AssessmentClientError
+from services.fluency.models import PracticeMode
 
 logger = logging.getLogger("english-tutor.fluency")
 
 
-def conversation_mode(room: Any) -> str:
-    """Resolve the backend-selected mode without trusting learner speech."""
+def _metadata(source: Any) -> dict[str, Any]:
+    """Read trusted dispatch metadata first, then legacy room metadata."""
 
-    selected = os.getenv("CONVERSATION_MODE", "free").strip().lower()
-    raw_metadata = getattr(room, "metadata", None)
-    if isinstance(raw_metadata, str) and raw_metadata.strip():
+    candidates = [
+        getattr(getattr(source, "job", None), "metadata", None),
+        getattr(getattr(source, "room", None), "metadata", None),
+        getattr(source, "metadata", None),
+    ]
+    for raw_metadata in candidates:
+        if not isinstance(raw_metadata, str) or not raw_metadata.strip():
+            continue
         try:
             metadata = json.loads(raw_metadata)
         except json.JSONDecodeError:
-            metadata = {}
+            continue
         if isinstance(metadata, dict):
-            candidate = metadata.get("conversation_mode") or metadata.get("mode")
-            if isinstance(candidate, str):
-                selected = candidate.strip().lower()
-    aliases = {
-        "guided": "guided",
-        "scenario": "guided",
-        "practice": "guided",
-        "free": "free",
-        "conversation": "free",
-    }
-    if selected not in aliases:
-        logger.warning("Unknown conversation mode %r; using free", selected)
-        return "free"
-    return aliases[selected]
+            return metadata
+    return {}
+
+
+def conversation_mode(source: Any) -> PracticeMode:
+    """Resolve one of the two backend-selected practice modes.
+
+    LiveKit explicit-dispatch job metadata is authoritative. Room metadata is
+    retained as a compatibility fallback for an already integrated backend.
+    Unknown values are rejected instead of silently creating a third behavior.
+    """
+
+    metadata = _metadata(source)
+    selected = metadata.get("conversation_mode", os.getenv("CONVERSATION_MODE", "free"))
+    if not isinstance(selected, str):
+        raise TypeError("conversation_mode must be the string 'free' or 'guided'")
+    try:
+        return PracticeMode(selected.strip().lower())
+    except ValueError as exc:
+        raise RuntimeError(
+            f"Unsupported conversation_mode {selected!r}; use only 'free' or 'guided'"
+        ) from exc
+
+
+def conversation_metadata(source: Any) -> dict[str, Any]:
+    """Expose parsed trusted metadata to the selected practice runtime."""
+
+    return _metadata(source)
 
 
 class ConversationFluencyTracker:
-    """Non-blocking Flux timing adapter for guided and free conversation."""
+    """Non-blocking Flux timing adapter for dynamic free conversation."""
 
     def __init__(
         self,
@@ -53,10 +73,13 @@ class ConversationFluencyTracker:
         mode: str,
         client: AssessmentClient | None = None,
     ) -> None:
-        if mode not in {"guided", "free"}:
-            raise ValueError("Conversation fluency mode must be guided or free")
+        if mode != PracticeMode.FREE and mode != PracticeMode.FREE.value:
+            raise ValueError(
+                "The dynamic conversation tracker is free-mode only; guided scoring "
+                "is owned by the deterministic scenario service"
+            )
         self.session_id = session_id
-        self.mode = mode
+        self.mode = PracticeMode.FREE.value
         self.client = client or AssessmentClient()
         self._words: list[dict[str, Any]] = []
         self._asr_confidence: float | None = None

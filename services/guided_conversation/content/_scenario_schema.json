@@ -1,0 +1,255 @@
+{
+  "$defs": {
+    "CEFRLevel": {
+      "enum": [
+        "A1",
+        "A2",
+        "B1",
+        "B2"
+      ],
+      "title": "CEFRLevel",
+      "type": "string"
+    },
+    "GuidedScenarioTurn": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^turn_[0-9]{2}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "assistant_display_text": {
+          "maxLength": 500,
+          "minLength": 2,
+          "title": "Assistant Display Text",
+          "type": "string"
+        },
+        "assistant_spoken_text": {
+          "maxLength": 500,
+          "minLength": 2,
+          "title": "Assistant Spoken Text",
+          "type": "string"
+        },
+        "assistant_audio_asset": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Assistant Audio Asset"
+        },
+        "user_display_text": {
+          "maxLength": 500,
+          "minLength": 2,
+          "title": "User Display Text",
+          "type": "string"
+        },
+        "user_expected_text": {
+          "maxLength": 500,
+          "minLength": 2,
+          "title": "User Expected Text",
+          "type": "string"
+        },
+        "arabic_hint": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Arabic Hint"
+        },
+        "expected_pause_after_word_indexes": {
+          "items": {
+            "type": "integer"
+          },
+          "maxItems": 20,
+          "title": "Expected Pause After Word Indexes",
+          "type": "array"
+        },
+        "evaluation": {
+          "$ref": "#/$defs/ScenarioEvaluation"
+        }
+      },
+      "required": [
+        "id",
+        "assistant_display_text",
+        "assistant_spoken_text",
+        "user_display_text",
+        "user_expected_text"
+      ],
+      "title": "GuidedScenarioTurn",
+      "type": "object"
+    },
+    "ScenarioEvaluation": {
+      "additionalProperties": false,
+      "properties": {
+        "pronunciation": {
+          "default": true,
+          "title": "Pronunciation",
+          "type": "boolean"
+        },
+        "fluency": {
+          "default": true,
+          "title": "Fluency",
+          "type": "boolean"
+        },
+        "target_words": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 30,
+          "title": "Target Words",
+          "type": "array"
+        }
+      },
+      "title": "ScenarioEvaluation",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "version": {
+      "minimum": 1,
+      "title": "Version",
+      "type": "integer"
+    },
+    "status": {
+      "default": "published",
+      "enum": [
+        "published",
+        "draft",
+        "retired"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "domain_id": {
+      "pattern": "^[a-z0-9_.-]+$",
+      "title": "Domain Id",
+      "type": "string"
+    },
+    "theme": {
+      "maxLength": 80,
+      "minLength": 2,
+      "title": "Theme",
+      "type": "string"
+    },
+    "title": {
+      "maxLength": 160,
+      "minLength": 2,
+      "title": "Title",
+      "type": "string"
+    },
+    "required_level": {
+      "$ref": "#/$defs/CEFRLevel"
+    },
+    "estimated_minutes": {
+      "maximum": 20,
+      "minimum": 1,
+      "title": "Estimated Minutes",
+      "type": "integer"
+    },
+    "learner_role": {
+      "maxLength": 120,
+      "minLength": 2,
+      "title": "Learner Role",
+      "type": "string"
+    },
+    "system_role": {
+      "maxLength": 120,
+      "minLength": 2,
+      "title": "System Role",
+      "type": "string"
+    },
+    "objective": {
+      "maxLength": 500,
+      "minLength": 5,
+      "title": "Objective",
+      "type": "string"
+    },
+    "situation": {
+      "maxLength": 700,
+      "minLength": 5,
+      "title": "Situation",
+      "type": "string"
+    },
+    "useful_vocabulary": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 30,
+      "title": "Useful Vocabulary",
+      "type": "array"
+    },
+    "target_functions": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Target Functions",
+      "type": "array"
+    },
+    "target_phonemes": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Target Phonemes",
+      "type": "array"
+    },
+    "closing_display_text": {
+      "maxLength": 500,
+      "minLength": 2,
+      "title": "Closing Display Text",
+      "type": "string"
+    },
+    "closing_spoken_text": {
+      "maxLength": 500,
+      "minLength": 2,
+      "title": "Closing Spoken Text",
+      "type": "string"
+    },
+    "turns": {
+      "items": {
+        "$ref": "#/$defs/GuidedScenarioTurn"
+      },
+      "maxItems": 20,
+      "minItems": 1,
+      "title": "Turns",
+      "type": "array"
+    }
+  },
+  "required": [
+    "id",
+    "version",
+    "domain_id",
+    "theme",
+    "title",
+    "required_level",
+    "estimated_minutes",
+    "learner_role",
+    "system_role",
+    "objective",
+    "situation",
+    "closing_display_text",
+    "closing_spoken_text",
+    "turns"
+  ],
+  "title": "GuidedScenario",
+  "type": "object"
+}
