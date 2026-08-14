@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-ARG PYTHON_VERSION=3.11
+ARG PYTHON_VERSION=3.10
 
 FROM python:${PYTHON_VERSION}-slim AS builder
 COPY --from=ghcr.io/astral-sh/uv:0.11.32 /uv /uvx /bin/
@@ -14,6 +14,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --extra agent --no-install-project
 
 COPY src ./src
+COPY app ./app
+COPY services ./services
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev --extra agent
 

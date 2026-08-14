@@ -1,0 +1,3580 @@
+openapi: 3.1.0
+info:
+  title: English Tutor Assessment and Practice Service
+  description: CEFR-aligned adaptive oral placement plus deterministic guided role-play
+    practice. Guided practice does not issue or change CEFR placement.
+  version: 0.6.0
+paths:
+  /health/live:
+    get:
+      summary: Health Live
+      operationId: health_live_health_live_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Health Live Health Live Get
+  /health/ready:
+    get:
+      summary: Health Ready
+      operationId: health_ready_health_ready_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Health Ready Health Ready Get
+  /metrics:
+    get:
+      summary: Metrics
+      operationId: metrics_metrics_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            text/plain:
+              schema:
+                type: string
+  /v1/assessments:
+    post:
+      summary: Create Assessment
+      operationId: create_assessment_v1_assessments_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssessmentCreateRequest'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentCreateResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/assessments/{assessment_id}:
+    get:
+      summary: Get Assessment State
+      operationId: get_assessment_state_v1_assessments__assessment_id__get
+      parameters:
+      - name: assessment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Assessment Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentStateResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/assessments/{assessment_id}/responses:
+    post:
+      summary: Submit Response
+      operationId: submit_response_v1_assessments__assessment_id__responses_post
+      parameters:
+      - name: assessment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Assessment Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResponseSubmission'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseResult'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/assessments/{assessment_id}/audio/{response_id}:
+    post:
+      summary: Upload Original Audio
+      operationId: upload_original_audio_v1_assessments__assessment_id__audio__response_id__post
+      parameters:
+      - name: assessment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Assessment Id
+      - name: response_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Response Id
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_upload_original_audio_v1_assessments__assessment_id__audio__response_id__post'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AudioUploadResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/assessments/{assessment_id}/result:
+    get:
+      summary: Get Result
+      operationId: get_result_v1_assessments__assessment_id__result_get
+      parameters:
+      - name: assessment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Assessment Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentResult'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/assessments/{assessment_id}/evidence:
+    get:
+      summary: Get Assessment Evidence
+      description: Return auditable scoring evidence for the application/backend team.
+      operationId: get_assessment_evidence_v1_assessments__assessment_id__evidence_get
+      parameters:
+      - name: assessment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Assessment Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentEvidenceResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/assessments/{assessment_id}/cancel:
+    post:
+      summary: Cancel Assessment
+      operationId: cancel_assessment_v1_assessments__assessment_id__cancel_post
+      parameters:
+      - name: assessment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Assessment Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/pronunciation/callback:
+    post:
+      summary: Pronunciation Callback
+      operationId: pronunciation_callback_v1_pronunciation_callback_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PronunciationResultEvent'
+        required: true
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/admin/versions/activate:
+    post:
+      summary: Activate Version
+      operationId: activate_version_v1_admin_versions_activate_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VersionActivationRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionActivationResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/admin/retention/cleanup:
+    post:
+      summary: Retention Cleanup
+      operationId: retention_cleanup_v1_admin_retention_cleanup_post
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetentionResponse'
+  /v1/fluency/sessions/{session_id}/turns:
+    post:
+      summary: Submit Fluency Turn
+      operationId: submit_fluency_turn_v1_fluency_sessions__session_id__turns_post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FluencyObservationRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FluencyTurnResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/fluency/sessions/{session_id}:
+    get:
+      summary: Get Fluency Session
+      operationId: get_fluency_session_v1_fluency_sessions__session_id__get
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      - name: mode
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/FluencyMode'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FluencySessionResult'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/guided-conversations/domains:
+    get:
+      tags:
+      - guided-conversations
+      summary: List Domains
+      operationId: list_domains_v1_guided_conversations_domains_get
+      parameters:
+      - name: placement_completed
+        in: query
+        required: true
+        schema:
+          type: boolean
+          title: Placement Completed
+      - name: placement_level
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/CEFRLevel'
+          - type: 'null'
+          title: Placement Level
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GuidedDomainSummary'
+                title: Response List Domains V1 Guided Conversations Domains Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/guided-conversations/scenarios:
+    get:
+      tags:
+      - guided-conversations
+      summary: List Scenarios
+      operationId: list_scenarios_v1_guided_conversations_scenarios_get
+      parameters:
+      - name: placement_completed
+        in: query
+        required: true
+        schema:
+          type: boolean
+          title: Placement Completed
+      - name: placement_level
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/CEFRLevel'
+          - type: 'null'
+          title: Placement Level
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScenarioSummary'
+                title: Response List Scenarios V1 Guided Conversations Scenarios Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/guided-conversations/scenarios/{scenario_id}:
+    get:
+      tags:
+      - guided-conversations
+      summary: Scenario Preview
+      operationId: scenario_preview_v1_guided_conversations_scenarios__scenario_id__get
+      parameters:
+      - name: scenario_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Scenario Id
+      - name: placement_completed
+        in: query
+        required: true
+        schema:
+          type: boolean
+          title: Placement Completed
+      - name: version
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+          title: Version
+      - name: placement_level
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/CEFRLevel'
+          - type: 'null'
+          title: Placement Level
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuidedScenario'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/guided-conversations/sessions:
+    post:
+      tags:
+      - guided-conversations
+      summary: Create Session
+      operationId: create_session_v1_guided_conversations_sessions_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GuidedSessionCreateRequest'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuidedSessionView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/guided-conversations/sessions/{session_id}:
+    get:
+      tags:
+      - guided-conversations
+      summary: Get Session
+      operationId: get_session_v1_guided_conversations_sessions__session_id__get
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuidedSessionView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/guided-conversations/sessions/{session_id}/prompt-ready:
+    post:
+      tags:
+      - guided-conversations
+      summary: Mark Prompt Ready
+      operationId: mark_prompt_ready_v1_guided_conversations_sessions__session_id__prompt_ready_post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuidedSessionView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/guided-conversations/sessions/{session_id}/attempts:
+    post:
+      tags:
+      - guided-conversations
+      summary: Submit Attempt
+      operationId: submit_attempt_v1_guided_conversations_sessions__session_id__attempts_post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GuidedAttemptRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuidedAttemptResult'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/guided-conversations/sessions/{session_id}/continue:
+    post:
+      tags:
+      - guided-conversations
+      summary: Continue After Retry
+      operationId: continue_after_retry_v1_guided_conversations_sessions__session_id__continue_post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuidedControlResult'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/guided-conversations/sessions/{session_id}/retry:
+    post:
+      tags:
+      - guided-conversations
+      summary: Retry Current Turn
+      operationId: retry_current_turn_v1_guided_conversations_sessions__session_id__retry_post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuidedControlResult'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/guided-conversations/sessions/{session_id}/pause:
+    post:
+      tags:
+      - guided-conversations
+      summary: Pause Session
+      operationId: pause_session_v1_guided_conversations_sessions__session_id__pause_post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuidedControlResult'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/guided-conversations/sessions/{session_id}/resume:
+    post:
+      tags:
+      - guided-conversations
+      summary: Resume Session
+      operationId: resume_session_v1_guided_conversations_sessions__session_id__resume_post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuidedControlResult'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/guided-conversations/sessions/{session_id}/stop:
+    post:
+      tags:
+      - guided-conversations
+      summary: Stop Session
+      operationId: stop_session_v1_guided_conversations_sessions__session_id__stop_post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuidedControlResult'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/guided-conversations/sessions/{session_id}/confidence:
+    post:
+      tags:
+      - guided-conversations
+      summary: Update Confidence
+      operationId: update_confidence_v1_guided_conversations_sessions__session_id__confidence_post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfidenceUpdateRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuidedSessionView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/guided-conversations/sessions/{session_id}/report:
+    get:
+      tags:
+      - guided-conversations
+      summary: Get Report
+      operationId: get_report_v1_guided_conversations_sessions__session_id__report_get
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuidedConversationReport'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/guided-conversations/sessions/{session_id}/audio/{attempt_id}:
+    post:
+      tags:
+      - guided-conversations
+      summary: Upload Original Audio
+      operationId: upload_original_audio_v1_guided_conversations_sessions__session_id__audio__attempt_id__post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      - name: attempt_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Attempt Id
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_upload_original_audio_v1_guided_conversations_sessions__session_id__audio__attempt_id__post'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuidedAudioUploadResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/guided-conversations/pronunciation/callback:
+    post:
+      tags:
+      - guided-conversations
+      summary: Pronunciation Callback
+      operationId: pronunciation_callback_v1_guided_conversations_pronunciation_callback_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GuidedPronunciationResultEvent'
+        required: true
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/practice-sessions:
+    post:
+      tags:
+      - practice-sessions
+      summary: Create Practice Session
+      operationId: create_practice_session_v1_practice_sessions_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PracticeSessionCreateRequest'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PracticeSessionCreateResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/practice-sessions/{practice_session_id}/result:
+    get:
+      tags:
+      - practice-sessions
+      summary: Get Practice Result
+      operationId: get_practice_result_v1_practice_sessions__practice_session_id__result_get
+      parameters:
+      - name: practice_session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Practice Session Id
+      - name: mode
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/PracticeMode'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PracticeSessionResult'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    AssessmentCreateRequest:
+      properties:
+        user_id:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: User Id
+        assessment_type:
+          type: string
+          const: conversational-placement
+          title: Assessment Type
+          default: conversational-placement
+        target_range:
+          items:
+            $ref: '#/components/schemas/CEFRLevel'
+          type: array
+          title: Target Range
+        language:
+          type: string
+          const: en
+          title: Language
+          default: en
+        interface_language:
+          type: string
+          enum:
+          - en
+          - ar
+          title: Interface Language
+          default: en
+        form_seed:
+          anyOf:
+          - type: string
+            maxLength: 128
+          - type: 'null'
+          title: Form Seed
+      additionalProperties: false
+      type: object
+      required:
+      - user_id
+      title: AssessmentCreateRequest
+    AssessmentCreateResponse:
+      properties:
+        assessment_id:
+          type: string
+          title: Assessment Id
+        status:
+          $ref: '#/components/schemas/AssessmentStatus'
+        current_item:
+          $ref: '#/components/schemas/CurrentPrompt'
+        assessment_version:
+          type: string
+          title: Assessment Version
+        item_bank_version:
+          type: string
+          title: Item Bank Version
+        progress:
+          $ref: '#/components/schemas/AssessmentProgress'
+      additionalProperties: false
+      type: object
+      required:
+      - assessment_id
+      - status
+      - current_item
+      - assessment_version
+      - item_bank_version
+      - progress
+      title: AssessmentCreateResponse
+    AssessmentEvidenceResponse:
+      properties:
+        assessment_id:
+          type: string
+          title: Assessment Id
+        versions:
+          additionalProperties:
+            type: string
+          type: object
+          title: Versions
+        responses:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Responses
+      additionalProperties: false
+      type: object
+      required:
+      - assessment_id
+      - versions
+      - responses
+      title: AssessmentEvidenceResponse
+    AssessmentProgress:
+      properties:
+        status:
+          $ref: '#/components/schemas/AssessmentStatus'
+        current_section:
+          type: string
+          title: Current Section
+        current_prompt_kind:
+          anyOf:
+          - $ref: '#/components/schemas/PromptKind'
+          - type: 'null'
+        questions_answered:
+          type: integer
+          minimum: 0.0
+          title: Questions Answered
+        confirmed_levels:
+          items:
+            $ref: '#/components/schemas/CEFRLevel'
+          type: array
+          title: Confirmed Levels
+        estimated_questions_remaining_min:
+          type: integer
+          minimum: 0.0
+          title: Estimated Questions Remaining Min
+        estimated_questions_remaining_max:
+          type: integer
+          minimum: 0.0
+          title: Estimated Questions Remaining Max
+        adaptive_length:
+          type: boolean
+          const: true
+          title: Adaptive Length
+          default: true
+        display_text:
+          type: string
+          title: Display Text
+      additionalProperties: false
+      type: object
+      required:
+      - status
+      - current_section
+      - current_prompt_kind
+      - questions_answered
+      - estimated_questions_remaining_min
+      - estimated_questions_remaining_max
+      - display_text
+      title: AssessmentProgress
+    AssessmentRecord:
+      properties:
+        assessment_id:
+          type: string
+          title: Assessment Id
+        user_id:
+          type: string
+          title: User Id
+        status:
+          $ref: '#/components/schemas/AssessmentStatus'
+        current_level_index:
+          type: integer
+          maximum: 4.0
+          minimum: 0.0
+          title: Current Level Index
+        current_item_id:
+          type: string
+          title: Current Item Id
+        current_prompt_kind:
+          $ref: '#/components/schemas/PromptKind'
+        current_prompt_id:
+          type: string
+          title: Current Prompt Id
+        highest_confirmed_level:
+          anyOf:
+          - $ref: '#/components/schemas/CEFRLevel'
+          - type: 'null'
+        first_unconfirmed_level:
+          anyOf:
+          - $ref: '#/components/schemas/CEFRLevel'
+          - type: 'null'
+        provisional_unconfirmed_level:
+          anyOf:
+          - $ref: '#/components/schemas/CEFRLevel'
+          - type: 'null'
+        early_boundary_verification_used:
+          type: boolean
+          title: Early Boundary Verification Used
+          default: false
+        boundary_verification_levels:
+          items:
+            $ref: '#/components/schemas/CEFRLevel'
+          type: array
+          title: Boundary Verification Levels
+        form_seed:
+          type: string
+          title: Form Seed
+        invalid_audio_count:
+          type: integer
+          title: Invalid Audio Count
+          default: 0
+        tie_breaker_count:
+          type: integer
+          title: Tie Breaker Count
+          default: 0
+        evaluator_failure_count:
+          type: integer
+          title: Evaluator Failure Count
+          default: 0
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+        completed_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Completed At
+        versions:
+          $ref: '#/components/schemas/VersionSet'
+        interface_language:
+          type: string
+          title: Interface Language
+          default: en
+        revision:
+          type: integer
+          minimum: 0.0
+          title: Revision
+          default: 0
+        completion_reason:
+          type: string
+          title: Completion Reason
+          default: ''
+      additionalProperties: false
+      type: object
+      required:
+      - assessment_id
+      - user_id
+      - status
+      - current_level_index
+      - current_item_id
+      - current_prompt_kind
+      - current_prompt_id
+      - form_seed
+      - created_at
+      - updated_at
+      - versions
+      title: AssessmentRecord
+    AssessmentResult:
+      properties:
+        assessment_id:
+          type: string
+          title: Assessment Id
+        status:
+          $ref: '#/components/schemas/AssessmentStatus'
+        result_name:
+          type: string
+          const: CEFR-aligned Conversational Interaction Placement
+          title: Result Name
+        confirmed_level:
+          anyOf:
+          - $ref: '#/components/schemas/CEFRLevel'
+          - type: string
+            enum:
+            - Pre-A1
+            - Not determined
+          title: Confirmed Level
+        first_unconfirmed_level:
+          anyOf:
+          - $ref: '#/components/schemas/CEFRLevel'
+          - type: 'null'
+        ceiling_reached:
+          type: boolean
+          title: Ceiling Reached
+        confidence:
+          $ref: '#/components/schemas/ResultConfidence'
+        confidence_score:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Confidence Score
+        confidence_score_interpretation:
+          type: string
+          title: Confidence Score Interpretation
+        profile:
+          additionalProperties:
+            anyOf:
+            - $ref: '#/components/schemas/CEFRLevel'
+            - type: string
+              enum:
+              - Pre-A1
+              - Not determined
+          type: object
+          title: Profile
+        profile_scores_percent:
+          additionalProperties:
+            type: integer
+          type: object
+          title: Profile Scores Percent
+        fluency:
+          $ref: '#/components/schemas/FluencySessionResult'
+        next_level_result:
+          type: string
+          title: Next Level Result
+        summary:
+          type: string
+          title: Summary
+        statistics:
+          $ref: '#/components/schemas/AssessmentStatistics'
+        grammar_assessed:
+          type: boolean
+          const: false
+          title: Grammar Assessed
+          default: false
+        pronunciation_diagnostic:
+          $ref: '#/components/schemas/PronunciationDiagnostic'
+        versions:
+          $ref: '#/components/schemas/VersionSet'
+        disclaimer:
+          type: string
+          title: Disclaimer
+        validity_warnings:
+          items:
+            type: string
+          type: array
+          title: Validity Warnings
+        completed_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Completed At
+        completion_reason:
+          type: string
+          title: Completion Reason
+      additionalProperties: false
+      type: object
+      required:
+      - assessment_id
+      - status
+      - result_name
+      - confirmed_level
+      - first_unconfirmed_level
+      - ceiling_reached
+      - confidence
+      - confidence_score
+      - confidence_score_interpretation
+      - profile
+      - profile_scores_percent
+      - fluency
+      - next_level_result
+      - summary
+      - statistics
+      - pronunciation_diagnostic
+      - versions
+      - disclaimer
+      - completion_reason
+      title: AssessmentResult
+    AssessmentStateResponse:
+      properties:
+        record:
+          $ref: '#/components/schemas/AssessmentRecord'
+        current_prompt:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Current Prompt
+        progress:
+          $ref: '#/components/schemas/AssessmentProgress'
+      additionalProperties: false
+      type: object
+      required:
+      - record
+      - current_prompt
+      - progress
+      title: AssessmentStateResponse
+    AssessmentStatistics:
+      properties:
+        duration_seconds:
+          type: number
+          minimum: 0.0
+          title: Duration Seconds
+        responses_submitted:
+          type: integer
+          minimum: 0.0
+          title: Responses Submitted
+        scored_responses:
+          type: integer
+          minimum: 0.0
+          title: Scored Responses
+        invalid_audio_responses:
+          type: integer
+          minimum: 0.0
+          title: Invalid Audio Responses
+        prompt_repetitions:
+          type: integer
+          minimum: 0.0
+          title: Prompt Repetitions
+        clarification_requests:
+          type: integer
+          minimum: 0.0
+          title: Clarification Requests
+        tie_breakers_used:
+          type: integer
+          minimum: 0.0
+          title: Tie Breakers Used
+      additionalProperties: false
+      type: object
+      required:
+      - duration_seconds
+      - responses_submitted
+      - scored_responses
+      - invalid_audio_responses
+      - prompt_repetitions
+      - clarification_requests
+      - tie_breakers_used
+      title: AssessmentStatistics
+    AssessmentStatus:
+      type: string
+      enum:
+      - in_progress
+      - completed
+      - cancelled
+      title: AssessmentStatus
+    AudioUploadResponse:
+      properties:
+        assessment_id:
+          type: string
+          title: Assessment Id
+        response_id:
+          type: string
+          title: Response Id
+        audio_uri:
+          type: string
+          title: Audio Uri
+        encrypted:
+          type: boolean
+          title: Encrypted
+          default: true
+      additionalProperties: false
+      type: object
+      required:
+      - assessment_id
+      - response_id
+      - audio_uri
+      title: AudioUploadResponse
+    Body_upload_original_audio_v1_assessments__assessment_id__audio__response_id__post:
+      properties:
+        audio:
+          type: string
+          contentMediaType: application/octet-stream
+          title: Audio
+      type: object
+      required:
+      - audio
+      title: Body_upload_original_audio_v1_assessments__assessment_id__audio__response_id__post
+    Body_upload_original_audio_v1_guided_conversations_sessions__session_id__audio__attempt_id__post:
+      properties:
+        audio:
+          type: string
+          contentMediaType: application/octet-stream
+          title: Audio
+      type: object
+      required:
+      - audio
+      title: Body_upload_original_audio_v1_guided_conversations_sessions__session_id__audio__attempt_id__post
+    CEFRLevel:
+      type: string
+      enum:
+      - A1
+      - A2
+      - B1
+      - B2
+      title: CEFRLevel
+    ConfidenceUpdateRequest:
+      properties:
+        confidence_after:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Confidence After
+      additionalProperties: false
+      type: object
+      required:
+      - confidence_after
+      title: ConfidenceUpdateRequest
+    CurrentGuidedTurn:
+      properties:
+        turn_id:
+          type: string
+          title: Turn Id
+        turn_number:
+          type: integer
+          minimum: 1.0
+          title: Turn Number
+        total_turns:
+          type: integer
+          minimum: 1.0
+          title: Total Turns
+        assistant_display_text:
+          type: string
+          title: Assistant Display Text
+        assistant_spoken_text:
+          type: string
+          title: Assistant Spoken Text
+        assistant_audio_asset:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Assistant Audio Asset
+        learner_display_text:
+          type: string
+          title: Learner Display Text
+        arabic_hint:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Arabic Hint
+      additionalProperties: false
+      type: object
+      required:
+      - turn_id
+      - turn_number
+      - total_turns
+      - assistant_display_text
+      - assistant_spoken_text
+      - learner_display_text
+      title: CurrentGuidedTurn
+    CurrentPrompt:
+      properties:
+        prompt_id:
+          type: string
+          title: Prompt Id
+        item_id:
+          type: string
+          title: Item Id
+        target_level:
+          anyOf:
+          - $ref: '#/components/schemas/CEFRLevel'
+          - type: 'null'
+        prompt_kind:
+          $ref: '#/components/schemas/PromptKind'
+        prompt:
+          type: string
+          title: Prompt
+        clarification_prompt:
+          type: string
+          title: Clarification Prompt
+        response_limit_seconds:
+          type: integer
+          title: Response Limit Seconds
+        prompt_repetitions_allowed:
+          type: integer
+          title: Prompt Repetitions Allowed
+        preparation_seconds:
+          type: integer
+          maximum: 60.0
+          minimum: 0.0
+          title: Preparation Seconds
+          default: 0
+        reference_text:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Reference Text
+      additionalProperties: false
+      type: object
+      required:
+      - prompt_id
+      - item_id
+      - target_level
+      - prompt_kind
+      - prompt
+      - clarification_prompt
+      - response_limit_seconds
+      - prompt_repetitions_allowed
+      title: CurrentPrompt
+    DeliverySummary:
+      properties:
+        label:
+          type: string
+          enum:
+          - stable
+          - developing
+          - needs_more_evidence
+          title: Label
+        mean_prompt_to_speech_seconds:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: 'null'
+          title: Mean Prompt To Speech Seconds
+        mean_completion_ratio:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Mean Completion Ratio
+        mid_phrase_pauses:
+          type: integer
+          minimum: 0.0
+          title: Mid Phrase Pauses
+        total_retries:
+          type: integer
+          minimum: 0.0
+          title: Total Retries
+        completed_without_retry:
+          type: integer
+          minimum: 0.0
+          title: Completed Without Retry
+        interpretation:
+          type: string
+          title: Interpretation
+          default: Observable delivery stability for this script; it is not psychological
+            confidence.
+      additionalProperties: false
+      type: object
+      required:
+      - label
+      - mean_completion_ratio
+      - mid_phrase_pauses
+      - total_retries
+      - completed_without_retry
+      title: DeliverySummary
+    FluencyConfidence:
+      type: string
+      enum:
+      - high
+      - medium
+      - low
+      title: FluencyConfidence
+    FluencyEvidenceCount:
+      properties:
+        eligible_turns:
+          type: integer
+          minimum: 0.0
+          title: Eligible Turns
+        total_turns:
+          type: integer
+          minimum: 0.0
+          title: Total Turns
+        total_words:
+          type: integer
+          minimum: 0.0
+          title: Total Words
+        learner_speech_seconds:
+          type: number
+          minimum: 0.0
+          title: Learner Speech Seconds
+        timestamped_turns:
+          type: integer
+          minimum: 0.0
+          title: Timestamped Turns
+        timestamp_coverage:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Timestamp Coverage
+      additionalProperties: false
+      type: object
+      required:
+      - eligible_turns
+      - total_turns
+      - total_words
+      - learner_speech_seconds
+      - timestamped_turns
+      - timestamp_coverage
+      title: FluencyEvidenceCount
+    FluencyFeatures:
+      properties:
+        word_count:
+          type: integer
+          minimum: 0.0
+          title: Word Count
+        response_duration_seconds:
+          type: number
+          minimum: 0.0
+          title: Response Duration Seconds
+        speech_duration_seconds:
+          type: number
+          minimum: 0.0
+          title: Speech Duration Seconds
+        speech_rate_wpm:
+          type: number
+          minimum: 0.0
+          title: Speech Rate Wpm
+        articulation_rate_wpm:
+          type: number
+          minimum: 0.0
+          title: Articulation Rate Wpm
+        pace_stability:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: 'null'
+          title: Pace Stability
+        pause_count:
+          type: integer
+          minimum: 0.0
+          title: Pause Count
+        pauses_per_minute:
+          type: number
+          minimum: 0.0
+          title: Pauses Per Minute
+        pause_duration_seconds:
+          type: number
+          minimum: 0.0
+          title: Pause Duration Seconds
+        pause_ratio:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Pause Ratio
+        phonation_ratio:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Phonation Ratio
+        mean_length_of_run_words:
+          type: number
+          minimum: 0.0
+          title: Mean Length Of Run Words
+        longest_run_words:
+          type: integer
+          minimum: 0.0
+          title: Longest Run Words
+        long_pause_count:
+          type: integer
+          minimum: 0.0
+          title: Long Pause Count
+        long_pauses_per_minute:
+          type: number
+          minimum: 0.0
+          title: Long Pauses Per Minute
+        max_inter_word_gap_seconds:
+          type: number
+          minimum: 0.0
+          title: Max Inter Word Gap Seconds
+        filler_count:
+          type: integer
+          minimum: 0.0
+          title: Filler Count
+        fillers_per_100_words:
+          type: number
+          minimum: 0.0
+          title: Fillers Per 100 Words
+        immediate_repeat_count:
+          type: integer
+          minimum: 0.0
+          title: Immediate Repeat Count
+        repeated_phrase_count:
+          type: integer
+          minimum: 0.0
+          title: Repeated Phrase Count
+        self_correction_count:
+          type: integer
+          minimum: 0.0
+          title: Self Correction Count
+        timing_source:
+          type: string
+          enum:
+          - word_timestamps
+          - response_window
+          - unavailable
+          title: Timing Source
+      additionalProperties: false
+      type: object
+      required:
+      - word_count
+      - response_duration_seconds
+      - speech_duration_seconds
+      - speech_rate_wpm
+      - articulation_rate_wpm
+      - pause_count
+      - pauses_per_minute
+      - pause_duration_seconds
+      - pause_ratio
+      - phonation_ratio
+      - mean_length_of_run_words
+      - longest_run_words
+      - long_pause_count
+      - long_pauses_per_minute
+      - max_inter_word_gap_seconds
+      - filler_count
+      - fillers_per_100_words
+      - immediate_repeat_count
+      - repeated_phrase_count
+      - self_correction_count
+      - timing_source
+      title: FluencyFeatures
+    FluencyMode:
+      type: string
+      enum:
+      - assessment
+      - guided
+      - free
+      title: FluencyMode
+    FluencyObservationRequest:
+      properties:
+        session_id:
+          type: string
+          maxLength: 160
+          minLength: 1
+          title: Session Id
+        turn_id:
+          type: string
+          maxLength: 160
+          minLength: 1
+          title: Turn Id
+        mode:
+          $ref: '#/components/schemas/FluencyMode'
+        transcript:
+          type: string
+          maxLength: 20000
+          title: Transcript
+          default: ''
+        words:
+          items:
+            $ref: '#/components/schemas/FluencyWord'
+          type: array
+          maxItems: 5000
+          title: Words
+        response_started_at_ms:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Response Started At Ms
+        response_ended_at_ms:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Response Ended At Ms
+        completed:
+          type: boolean
+          title: Completed
+          default: true
+        assistance_count:
+          type: integer
+          maximum: 20.0
+          minimum: 0.0
+          title: Assistance Count
+          default: 0
+        target_level:
+          anyOf:
+          - type: string
+            enum:
+            - A1
+            - A2
+            - B1
+            - B2
+          - type: 'null'
+          title: Target Level
+        task_type:
+          anyOf:
+          - type: string
+            maxLength: 100
+          - type: 'null'
+          title: Task Type
+        explicit_audio_issue:
+          type: boolean
+          title: Explicit Audio Issue
+          default: false
+        audio_issue_reason:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Audio Issue Reason
+      additionalProperties: false
+      type: object
+      required:
+      - session_id
+      - turn_id
+      - mode
+      title: FluencyObservationRequest
+      description: 'One committed learner turn sent by any application mode.
+
+
+        Word timestamps are seconds relative to the beginning of the full learner
+
+        response. System latency, tutor speech, and silence after the last learner
+
+        word must not be included.'
+    FluencyObservationResult:
+      properties:
+        session_id:
+          type: string
+          title: Session Id
+        turn_id:
+          type: string
+          title: Turn Id
+        mode:
+          $ref: '#/components/schemas/FluencyMode'
+        status:
+          $ref: '#/components/schemas/FluencyScoreStatus'
+        eligible:
+          type: boolean
+          title: Eligible
+        fluency_index:
+          anyOf:
+          - type: integer
+            maximum: 100.0
+            minimum: 0.0
+          - type: 'null'
+          title: Fluency Index
+        confidence:
+          $ref: '#/components/schemas/FluencyConfidence'
+        evidence_count:
+          $ref: '#/components/schemas/FluencyEvidenceCount'
+        features:
+          $ref: '#/components/schemas/FluencyFeatures'
+        subscores:
+          anyOf:
+          - $ref: '#/components/schemas/FluencySubscores'
+          - type: 'null'
+        feedback:
+          items:
+            type: string
+          type: array
+          title: Feedback
+        insufficiency_reasons:
+          items:
+            type: string
+          type: array
+          title: Insufficiency Reasons
+        cefr_fluency_estimate:
+          anyOf:
+          - type: string
+            enum:
+            - Pre-A1
+            - A1
+            - A2
+            - B1
+            - B2
+          - type: 'null'
+          title: Cefr Fluency Estimate
+        scorer_version:
+          type: string
+          const: fluency-v0.1
+          title: Scorer Version
+          default: fluency-v0.1
+        score_interpretation:
+          type: string
+          title: Score Interpretation
+          default: Explainable delivery-fluency index, not a probability or official
+            CEFR score.
+      additionalProperties: false
+      type: object
+      required:
+      - session_id
+      - turn_id
+      - mode
+      - status
+      - eligible
+      - confidence
+      - evidence_count
+      - features
+      title: FluencyObservationResult
+    FluencyScoreStatus:
+      type: string
+      enum:
+      - scored
+      - insufficient_evidence
+      - invalid_audio
+      title: FluencyScoreStatus
+    FluencySessionResult:
+      properties:
+        session_id:
+          type: string
+          title: Session Id
+        mode:
+          $ref: '#/components/schemas/FluencyMode'
+        status:
+          $ref: '#/components/schemas/FluencyScoreStatus'
+        fluency_index:
+          anyOf:
+          - type: integer
+            maximum: 100.0
+            minimum: 0.0
+          - type: 'null'
+          title: Fluency Index
+        confidence:
+          $ref: '#/components/schemas/FluencyConfidence'
+        evidence_count:
+          $ref: '#/components/schemas/FluencyEvidenceCount'
+        subscores:
+          anyOf:
+          - $ref: '#/components/schemas/FluencySubscores'
+          - type: 'null'
+        feedback:
+          items:
+            type: string
+          type: array
+          title: Feedback
+        insufficiency_reasons:
+          items:
+            type: string
+          type: array
+          title: Insufficiency Reasons
+        cefr_fluency_estimate:
+          anyOf:
+          - type: string
+            enum:
+            - Pre-A1
+            - A1
+            - A2
+            - B1
+            - B2
+          - type: 'null'
+          title: Cefr Fluency Estimate
+        scorer_version:
+          type: string
+          const: fluency-v0.1
+          title: Scorer Version
+          default: fluency-v0.1
+        score_interpretation:
+          type: string
+          title: Score Interpretation
+          default: Session delivery-fluency index from eligible learner turns; not
+            a probability.
+      additionalProperties: false
+      type: object
+      required:
+      - session_id
+      - mode
+      - status
+      - confidence
+      - evidence_count
+      title: FluencySessionResult
+    FluencySubscores:
+      properties:
+        speed:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Speed
+        breakdown:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Breakdown
+        continuity:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Continuity
+        repair:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Repair
+      additionalProperties: false
+      type: object
+      required:
+      - speed
+      - breakdown
+      - continuity
+      - repair
+      title: FluencySubscores
+    FluencyTurnResponse:
+      properties:
+        observation:
+          $ref: '#/components/schemas/FluencyObservationResult'
+        session:
+          $ref: '#/components/schemas/FluencySessionResult'
+      additionalProperties: false
+      type: object
+      required:
+      - observation
+      - session
+      title: FluencyTurnResponse
+    FluencyWord:
+      properties:
+        word:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Word
+        start:
+          type: number
+          minimum: 0.0
+          title: Start
+        end:
+          type: number
+          minimum: 0.0
+          title: End
+        confidence:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: 'null'
+          title: Confidence
+      additionalProperties: false
+      type: object
+      required:
+      - word
+      - start
+      - end
+      title: FluencyWord
+    GuidedAttemptRequest:
+      properties:
+        attempt_id:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: Attempt Id
+        idempotency_key:
+          type: string
+          maxLength: 128
+          minLength: 8
+          title: Idempotency Key
+        turn_id:
+          type: string
+          maxLength: 80
+          minLength: 1
+          title: Turn Id
+        transcript:
+          type: string
+          maxLength: 20000
+          title: Transcript
+          default: ''
+        words:
+          items:
+            $ref: '#/components/schemas/FluencyWord'
+          type: array
+          maxItems: 5000
+          title: Words
+        prompt_available_at_ms:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Prompt Available At Ms
+        response_started_at_ms:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Response Started At Ms
+        response_ended_at_ms:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Response Ended At Ms
+        asr_confidence:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: 'null'
+          title: Asr Confidence
+        completed:
+          type: boolean
+          title: Completed
+          default: true
+        explicit_audio_issue:
+          type: boolean
+          title: Explicit Audio Issue
+          default: false
+        audio_issue_reason:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Audio Issue Reason
+      additionalProperties: false
+      type: object
+      required:
+      - attempt_id
+      - idempotency_key
+      - turn_id
+      title: GuidedAttemptRequest
+    GuidedAttemptResult:
+      properties:
+        attempt_id:
+          type: string
+          title: Attempt Id
+        idempotent_replay:
+          type: boolean
+          title: Idempotent Replay
+          default: false
+        session:
+          $ref: '#/components/schemas/GuidedSessionView'
+        delivery:
+          $ref: '#/components/schemas/GuidedDeliveryMetrics'
+        fluency:
+          $ref: '#/components/schemas/FluencyObservationResult'
+        retry_recommended:
+          type: boolean
+          title: Retry Recommended
+        retry_reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Retry Reason
+        spoken_reply:
+          type: string
+          title: Spoken Reply
+        live_event:
+          additionalProperties: true
+          type: object
+          title: Live Event
+        pronunciation_status:
+          $ref: '#/components/schemas/PronunciationStatus'
+      additionalProperties: false
+      type: object
+      required:
+      - attempt_id
+      - session
+      - delivery
+      - fluency
+      - retry_recommended
+      - spoken_reply
+      - live_event
+      - pronunciation_status
+      title: GuidedAttemptResult
+    GuidedAudioUploadResponse:
+      properties:
+        session_id:
+          type: string
+          title: Session Id
+        attempt_id:
+          type: string
+          title: Attempt Id
+        audio_uri:
+          type: string
+          title: Audio Uri
+      additionalProperties: false
+      type: object
+      required:
+      - session_id
+      - attempt_id
+      - audio_uri
+      title: GuidedAudioUploadResponse
+    GuidedControlResult:
+      properties:
+        session:
+          $ref: '#/components/schemas/GuidedSessionView'
+        spoken_reply:
+          type: string
+          title: Spoken Reply
+        live_event:
+          additionalProperties: true
+          type: object
+          title: Live Event
+      additionalProperties: false
+      type: object
+      required:
+      - session
+      - spoken_reply
+      - live_event
+      title: GuidedControlResult
+    GuidedConversationReport:
+      properties:
+        session_id:
+          type: string
+          title: Session Id
+        scenario_id:
+          type: string
+          title: Scenario Id
+        scenario_version:
+          type: integer
+          title: Scenario Version
+        domain_id:
+          type: string
+          title: Domain Id
+        domain_title:
+          type: string
+          title: Domain Title
+        scenario_title:
+          type: string
+          title: Scenario Title
+        scenario_level:
+          $ref: '#/components/schemas/CEFRLevel'
+        status:
+          $ref: '#/components/schemas/GuidedSessionStatus'
+        completed_turns:
+          type: integer
+          minimum: 0.0
+          title: Completed Turns
+        total_turns:
+          type: integer
+          minimum: 1.0
+          title: Total Turns
+        guided_speaking_fluency:
+          $ref: '#/components/schemas/FluencySessionResult'
+        delivery_stability:
+          $ref: '#/components/schemas/DeliverySummary'
+        pronunciation:
+          $ref: '#/components/schemas/PronunciationSummary'
+        confidence_before:
+          anyOf:
+          - type: integer
+            maximum: 100.0
+            minimum: 0.0
+          - type: 'null'
+          title: Confidence Before
+        confidence_after:
+          anyOf:
+          - type: integer
+            maximum: 100.0
+            minimum: 0.0
+          - type: 'null'
+          title: Confidence After
+        confidence_change:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Confidence Change
+        result_debug:
+          $ref: '#/components/schemas/GuidedResultDebug'
+        replay_script:
+          items:
+            $ref: '#/components/schemas/GuidedReplayLine'
+          type: array
+          title: Replay Script
+        versions:
+          $ref: '#/components/schemas/GuidedVersionSet'
+        limitations:
+          items:
+            type: string
+          type: array
+          title: Limitations
+      additionalProperties: false
+      type: object
+      required:
+      - session_id
+      - scenario_id
+      - scenario_version
+      - domain_id
+      - domain_title
+      - scenario_title
+      - scenario_level
+      - status
+      - completed_turns
+      - total_turns
+      - guided_speaking_fluency
+      - delivery_stability
+      - pronunciation
+      - result_debug
+      - replay_script
+      - versions
+      - limitations
+      title: GuidedConversationReport
+    GuidedDeliveryMetrics:
+      properties:
+        prompt_to_speech_seconds:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: 'null'
+          title: Prompt To Speech Seconds
+        completion_ratio:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Completion Ratio
+        expected_word_count:
+          type: integer
+          minimum: 0.0
+          title: Expected Word Count
+        recognized_word_count:
+          type: integer
+          minimum: 0.0
+          title: Recognized Word Count
+        mid_phrase_pause_count:
+          type: integer
+          minimum: 0.0
+          title: Mid Phrase Pause Count
+        boundary_pause_count:
+          type: integer
+          minimum: 0.0
+          title: Boundary Pause Count
+        retry_number:
+          type: integer
+          minimum: 0.0
+          title: Retry Number
+      additionalProperties: false
+      type: object
+      required:
+      - completion_ratio
+      - expected_word_count
+      - recognized_word_count
+      - mid_phrase_pause_count
+      - boundary_pause_count
+      - retry_number
+      title: GuidedDeliveryMetrics
+    GuidedDomainSummary:
+      properties:
+        domain_id:
+          type: string
+          title: Domain Id
+        title:
+          type: string
+          title: Title
+        description:
+          type: string
+          title: Description
+        scenario_count:
+          type: integer
+          minimum: 0.0
+          title: Scenario Count
+        available_scenario_count:
+          type: integer
+          minimum: 0.0
+          title: Available Scenario Count
+        scenarios:
+          items:
+            $ref: '#/components/schemas/ScenarioSummary'
+          type: array
+          title: Scenarios
+      additionalProperties: false
+      type: object
+      required:
+      - domain_id
+      - title
+      - description
+      - scenario_count
+      - available_scenario_count
+      - scenarios
+      title: GuidedDomainSummary
+    GuidedFluencyThresholds:
+      properties:
+        minimum_timed_words_per_line:
+          type: integer
+          minimum: 1.0
+          title: Minimum Timed Words Per Line
+        minimum_timed_seconds_per_line:
+          type: number
+          exclusiveMinimum: 0.0
+          title: Minimum Timed Seconds Per Line
+        minimum_eligible_lines:
+          type: integer
+          minimum: 1.0
+          title: Minimum Eligible Lines
+        target_eligible_lines:
+          type: integer
+          minimum: 1.0
+          title: Target Eligible Lines
+        minimum_speech_seconds_when_below_target:
+          type: number
+          exclusiveMinimum: 0.0
+          title: Minimum Speech Seconds When Below Target
+      additionalProperties: false
+      type: object
+      required:
+      - minimum_timed_words_per_line
+      - minimum_timed_seconds_per_line
+      - minimum_eligible_lines
+      - target_eligible_lines
+      - minimum_speech_seconds_when_below_target
+      title: GuidedFluencyThresholds
+    GuidedLineDiagnostic:
+      properties:
+        line_number:
+          type: integer
+          minimum: 1.0
+          title: Line Number
+        turn_id:
+          type: string
+          title: Turn Id
+        expected_text:
+          type: string
+          title: Expected Text
+        attempted:
+          type: boolean
+          title: Attempted
+        eligible:
+          type: boolean
+          title: Eligible
+        fluency_status:
+          type: string
+          title: Fluency Status
+        expected_word_count:
+          type: integer
+          minimum: 0.0
+          title: Expected Word Count
+        recognized_word_count:
+          type: integer
+          minimum: 0.0
+          title: Recognized Word Count
+        timed_word_count:
+          type: integer
+          minimum: 0.0
+          title: Timed Word Count
+        response_duration_seconds:
+          type: number
+          minimum: 0.0
+          title: Response Duration Seconds
+        speech_duration_seconds:
+          type: number
+          minimum: 0.0
+          title: Speech Duration Seconds
+        timing_source:
+          type: string
+          title: Timing Source
+        completion_ratio:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Completion Ratio
+        asr_confidence_percent:
+          anyOf:
+          - type: integer
+            maximum: 100.0
+            minimum: 0.0
+          - type: 'null'
+          title: Asr Confidence Percent
+        selected_attempt_number:
+          anyOf:
+          - type: integer
+            minimum: 1.0
+          - type: 'null'
+          title: Selected Attempt Number
+        insufficiency_reasons:
+          items:
+            type: string
+          type: array
+          title: Insufficiency Reasons
+      additionalProperties: false
+      type: object
+      required:
+      - line_number
+      - turn_id
+      - expected_text
+      - attempted
+      - eligible
+      - fluency_status
+      - expected_word_count
+      - recognized_word_count
+      - timed_word_count
+      - response_duration_seconds
+      - speech_duration_seconds
+      - timing_source
+      - completion_ratio
+      title: GuidedLineDiagnostic
+    GuidedPronunciationResultEvent:
+      properties:
+        event_type:
+          type: string
+          enum:
+          - guided.pronunciation_completed
+          - guided.pronunciation_failed
+          title: Event Type
+        event_id:
+          type: string
+          title: Event Id
+        occurred_at:
+          type: string
+          format: date-time
+          title: Occurred At
+        session_id:
+          type: string
+          title: Session Id
+        attempt_id:
+          type: string
+          title: Attempt Id
+        status:
+          type: string
+          enum:
+          - completed
+          - failed
+          title: Status
+        patterns:
+          items:
+            $ref: '#/components/schemas/PronunciationPattern'
+          type: array
+          title: Patterns
+        service_version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Service Version
+      additionalProperties: false
+      type: object
+      required:
+      - event_type
+      - event_id
+      - occurred_at
+      - session_id
+      - attempt_id
+      - status
+      title: GuidedPronunciationResultEvent
+    GuidedReplayLine:
+      properties:
+        sequence:
+          type: integer
+          minimum: 1.0
+          title: Sequence
+        role:
+          type: string
+          enum:
+          - assistant
+          - learner
+          title: Role
+        turn_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Turn Id
+        text:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Text
+      additionalProperties: false
+      type: object
+      required:
+      - sequence
+      - role
+      - text
+      title: GuidedReplayLine
+    GuidedResultDebug:
+      properties:
+        summary:
+          type: string
+          title: Summary
+        thresholds:
+          $ref: '#/components/schemas/GuidedFluencyThresholds'
+        lines:
+          items:
+            $ref: '#/components/schemas/GuidedLineDiagnostic'
+          type: array
+          title: Lines
+        excluded_line_count:
+          type: integer
+          minimum: 0.0
+          title: Excluded Line Count
+        guidance:
+          items:
+            type: string
+          type: array
+          title: Guidance
+      additionalProperties: false
+      type: object
+      required:
+      - summary
+      - thresholds
+      - lines
+      - excluded_line_count
+      title: GuidedResultDebug
+    GuidedScenario:
+      properties:
+        id:
+          type: string
+          pattern: ^[a-z0-9_.-]+$
+          title: Id
+        version:
+          type: integer
+          minimum: 1.0
+          title: Version
+        status:
+          type: string
+          enum:
+          - published
+          - draft
+          - retired
+          title: Status
+          default: published
+        domain_id:
+          type: string
+          pattern: ^[a-z0-9_.-]+$
+          title: Domain Id
+        theme:
+          type: string
+          maxLength: 80
+          minLength: 2
+          title: Theme
+        title:
+          type: string
+          maxLength: 160
+          minLength: 2
+          title: Title
+        required_level:
+          $ref: '#/components/schemas/CEFRLevel'
+        estimated_minutes:
+          type: integer
+          maximum: 20.0
+          minimum: 1.0
+          title: Estimated Minutes
+        learner_role:
+          type: string
+          maxLength: 120
+          minLength: 2
+          title: Learner Role
+        system_role:
+          type: string
+          maxLength: 120
+          minLength: 2
+          title: System Role
+        objective:
+          type: string
+          maxLength: 500
+          minLength: 5
+          title: Objective
+        situation:
+          type: string
+          maxLength: 700
+          minLength: 5
+          title: Situation
+        useful_vocabulary:
+          items:
+            type: string
+          type: array
+          maxItems: 30
+          title: Useful Vocabulary
+        target_functions:
+          items:
+            type: string
+          type: array
+          maxItems: 20
+          title: Target Functions
+        target_phonemes:
+          items:
+            type: string
+          type: array
+          maxItems: 20
+          title: Target Phonemes
+        closing_display_text:
+          type: string
+          maxLength: 500
+          minLength: 2
+          title: Closing Display Text
+        closing_spoken_text:
+          type: string
+          maxLength: 500
+          minLength: 2
+          title: Closing Spoken Text
+        turns:
+          items:
+            $ref: '#/components/schemas/GuidedScenarioTurn'
+          type: array
+          maxItems: 20
+          minItems: 1
+          title: Turns
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - version
+      - domain_id
+      - theme
+      - title
+      - required_level
+      - estimated_minutes
+      - learner_role
+      - system_role
+      - objective
+      - situation
+      - closing_display_text
+      - closing_spoken_text
+      - turns
+      title: GuidedScenario
+    GuidedScenarioTurn:
+      properties:
+        id:
+          type: string
+          pattern: ^turn_[0-9]{2}$
+          title: Id
+        assistant_display_text:
+          type: string
+          maxLength: 500
+          minLength: 2
+          title: Assistant Display Text
+        assistant_spoken_text:
+          type: string
+          maxLength: 500
+          minLength: 2
+          title: Assistant Spoken Text
+        assistant_audio_asset:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Assistant Audio Asset
+        user_display_text:
+          type: string
+          maxLength: 500
+          minLength: 2
+          title: User Display Text
+        user_expected_text:
+          type: string
+          maxLength: 500
+          minLength: 2
+          title: User Expected Text
+        arabic_hint:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Arabic Hint
+        expected_pause_after_word_indexes:
+          items:
+            type: integer
+          type: array
+          maxItems: 20
+          title: Expected Pause After Word Indexes
+        evaluation:
+          $ref: '#/components/schemas/ScenarioEvaluation'
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - assistant_display_text
+      - assistant_spoken_text
+      - user_display_text
+      - user_expected_text
+      title: GuidedScenarioTurn
+    GuidedSessionCreateRequest:
+      properties:
+        user_id:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: User Id
+        scenario_id:
+          type: string
+          maxLength: 160
+          minLength: 1
+          title: Scenario Id
+        scenario_version:
+          anyOf:
+          - type: integer
+            minimum: 1.0
+          - type: 'null'
+          title: Scenario Version
+        placement_completed:
+          type: boolean
+          title: Placement Completed
+        placement_level:
+          anyOf:
+          - $ref: '#/components/schemas/CEFRLevel'
+          - type: 'null'
+        interface_language:
+          type: string
+          enum:
+          - en
+          - ar
+          title: Interface Language
+          default: en
+        confidence_before:
+          anyOf:
+          - type: integer
+            maximum: 100.0
+            minimum: 0.0
+          - type: 'null'
+          title: Confidence Before
+        recording_consent:
+          type: boolean
+          title: Recording Consent
+          default: false
+      additionalProperties: false
+      type: object
+      required:
+      - user_id
+      - scenario_id
+      - placement_completed
+      title: GuidedSessionCreateRequest
+    GuidedSessionState:
+      type: string
+      enum:
+      - assistant_speaking
+      - user_prompt_visible
+      - awaiting_retry_decision
+      - paused
+      - completed
+      - stopped
+      title: GuidedSessionState
+    GuidedSessionStatus:
+      type: string
+      enum:
+      - in_progress
+      - completed
+      - stopped
+      title: GuidedSessionStatus
+    GuidedSessionView:
+      properties:
+        session_id:
+          type: string
+          title: Session Id
+        status:
+          $ref: '#/components/schemas/GuidedSessionStatus'
+        state:
+          $ref: '#/components/schemas/GuidedSessionState'
+        scenario_id:
+          type: string
+          title: Scenario Id
+        scenario_version:
+          type: integer
+          title: Scenario Version
+        domain_id:
+          type: string
+          title: Domain Id
+        domain_title:
+          type: string
+          title: Domain Title
+        scenario_title:
+          type: string
+          title: Scenario Title
+        scenario_level:
+          $ref: '#/components/schemas/CEFRLevel'
+        current_turn:
+          anyOf:
+          - $ref: '#/components/schemas/CurrentGuidedTurn'
+          - type: 'null'
+        completed_turns:
+          type: integer
+          minimum: 0.0
+          title: Completed Turns
+        total_turns:
+          type: integer
+          minimum: 1.0
+          title: Total Turns
+        retries:
+          type: integer
+          minimum: 0.0
+          title: Retries
+        recording_consent:
+          type: boolean
+          title: Recording Consent
+        allowed_actions:
+          items:
+            type: string
+            enum:
+            - speak
+            - retry
+            - continue
+            - replay
+            - replay_slow
+            - pause
+            - resume
+            - stop
+          type: array
+          title: Allowed Actions
+      additionalProperties: false
+      type: object
+      required:
+      - session_id
+      - status
+      - state
+      - scenario_id
+      - scenario_version
+      - domain_id
+      - domain_title
+      - scenario_title
+      - scenario_level
+      - current_turn
+      - completed_turns
+      - total_turns
+      - retries
+      - recording_consent
+      - allowed_actions
+      title: GuidedSessionView
+    GuidedVersionSet:
+      properties:
+        scenario_content:
+          type: string
+          title: Scenario Content
+        scenario_engine:
+          type: string
+          enum:
+          - guided-engine-v0.1
+          - guided-engine-v0.2
+          title: Scenario Engine
+          default: guided-engine-v0.2
+        fluency:
+          type: string
+          const: fluency-v0.1
+          title: Fluency
+          default: fluency-v0.1
+        delivery:
+          type: string
+          enum:
+          - guided-delivery-v0.1
+          - guided-delivery-v0.2
+          title: Delivery
+          default: guided-delivery-v0.2
+        pronunciation:
+          type: string
+          title: Pronunciation
+          default: external-or-not-configured
+      additionalProperties: false
+      type: object
+      required:
+      - scenario_content
+      title: GuidedVersionSet
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    NextAction:
+      properties:
+        type:
+          $ref: '#/components/schemas/NextActionType'
+        prompt:
+          anyOf:
+          - $ref: '#/components/schemas/CurrentPrompt'
+          - type: 'null'
+        message:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Message
+      additionalProperties: false
+      type: object
+      required:
+      - type
+      title: NextAction
+    NextActionType:
+      type: string
+      enum:
+      - ask_main
+      - ask_follow_up
+      - ask_tie_breaker
+      - repeat_prompt
+      - show_result
+      - end
+      title: NextActionType
+    PracticeMode:
+      type: string
+      enum:
+      - free
+      - guided
+      title: PracticeMode
+      description: The only two learner-selectable practice modes in the application.
+    PracticeSessionCreateRequest:
+      properties:
+        user_id:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: User Id
+        participant_name:
+          anyOf:
+          - type: string
+            maxLength: 128
+          - type: 'null'
+          title: Participant Name
+        mode:
+          $ref: '#/components/schemas/PracticeMode'
+        scenario_id:
+          anyOf:
+          - type: string
+            maxLength: 160
+            minLength: 1
+          - type: 'null'
+          title: Scenario Id
+        scenario_version:
+          anyOf:
+          - type: integer
+            minimum: 1.0
+          - type: 'null'
+          title: Scenario Version
+        placement_completed:
+          type: boolean
+          title: Placement Completed
+          default: false
+        placement_level:
+          anyOf:
+          - $ref: '#/components/schemas/CEFRLevel'
+          - type: 'null'
+        interface_language:
+          type: string
+          pattern: ^(en|ar)$
+          title: Interface Language
+          default: en
+        confidence_before:
+          anyOf:
+          - type: integer
+            maximum: 100.0
+            minimum: 0.0
+          - type: 'null'
+          title: Confidence Before
+        recording_consent:
+          type: boolean
+          title: Recording Consent
+          default: false
+      additionalProperties: false
+      type: object
+      required:
+      - user_id
+      - mode
+      title: PracticeSessionCreateRequest
+      description: Trusted backend request for either free or guided practice.
+    PracticeSessionCreateResponse:
+      properties:
+        practice_session_id:
+          type: string
+          title: Practice Session Id
+        mode:
+          $ref: '#/components/schemas/PracticeMode'
+        room_name:
+          type: string
+          title: Room Name
+        server_url:
+          type: string
+          title: Server Url
+        participant_token:
+          type: string
+          title: Participant Token
+        participant_identity:
+          type: string
+          title: Participant Identity
+        token_expires_at:
+          type: string
+          format: date-time
+          title: Token Expires At
+        agent_name:
+          type: string
+          title: Agent Name
+          default: english-tutor
+        result_url:
+          type: string
+          title: Result Url
+        events_topic:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Events Topic
+        commands_topic:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Commands Topic
+        guided_session:
+          anyOf:
+          - $ref: '#/components/schemas/GuidedSessionView'
+          - type: 'null'
+      additionalProperties: false
+      type: object
+      required:
+      - practice_session_id
+      - mode
+      - room_name
+      - server_url
+      - participant_token
+      - participant_identity
+      - token_expires_at
+      - result_url
+      title: PracticeSessionCreateResponse
+    PracticeSessionResult:
+      properties:
+        practice_session_id:
+          type: string
+          title: Practice Session Id
+        mode:
+          $ref: '#/components/schemas/PracticeMode'
+        result:
+          anyOf:
+          - $ref: '#/components/schemas/FluencySessionResult'
+          - $ref: '#/components/schemas/GuidedConversationReport'
+          title: Result
+      additionalProperties: false
+      type: object
+      required:
+      - practice_session_id
+      - mode
+      - result
+      title: PracticeSessionResult
+    PromptKind:
+      type: string
+      enum:
+      - calibration
+      - main
+      - follow_up
+      - tie_breaker
+      title: PromptKind
+    PronunciationDiagnostic:
+      properties:
+        status:
+          type: string
+          enum:
+          - not_requested
+          - pending
+          - completed
+          - unavailable
+          - failed
+          title: Status
+        phoneme_error_rate:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: 'null'
+          title: Phoneme Error Rate
+        substitutions:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Substitutions
+        deletions:
+          items:
+            type: string
+          type: array
+          title: Deletions
+        insertions:
+          items:
+            type: string
+          type: array
+          title: Insertions
+        phonological_similarity:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: 'null'
+          title: Phonological Similarity
+        feature_accuracy:
+          additionalProperties:
+            type: number
+          type: object
+          title: Feature Accuracy
+        feedback:
+          items:
+            type: string
+          type: array
+          title: Feedback
+        impact_on_conversational_level:
+          type: string
+          const: none
+          title: Impact On Conversational Level
+          default: none
+        failure_reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Failure Reason
+      additionalProperties: false
+      type: object
+      required:
+      - status
+      title: PronunciationDiagnostic
+    PronunciationPattern:
+      properties:
+        expected:
+          type: string
+          maxLength: 40
+          minLength: 1
+          title: Expected
+        observed:
+          anyOf:
+          - type: string
+            maxLength: 40
+          - type: 'null'
+          title: Observed
+        error_type:
+          type: string
+          enum:
+          - substitution
+          - deletion
+          - insertion
+          - other
+          title: Error Type
+        word:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Word
+        confidence:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Confidence
+      additionalProperties: false
+      type: object
+      required:
+      - expected
+      - error_type
+      - word
+      - confidence
+      title: PronunciationPattern
+    PronunciationResultEvent:
+      properties:
+        event_type:
+          type: string
+          enum:
+          - assessment.pronunciation_completed
+          - assessment.pronunciation_failed
+          title: Event Type
+        event_id:
+          type: string
+          title: Event Id
+        occurred_at:
+          type: string
+          format: date-time
+          title: Occurred At
+        assessment_id:
+          type: string
+          title: Assessment Id
+        response_id:
+          type: string
+          title: Response Id
+        status:
+          type: string
+          enum:
+          - completed
+          - failed
+          title: Status
+        diagnostic:
+          $ref: '#/components/schemas/PronunciationDiagnostic'
+      additionalProperties: false
+      type: object
+      required:
+      - event_type
+      - event_id
+      - occurred_at
+      - assessment_id
+      - response_id
+      - status
+      - diagnostic
+      title: PronunciationResultEvent
+    PronunciationStatus:
+      type: string
+      enum:
+      - not_requested
+      - not_configured
+      - queued
+      - completed
+      - failed
+      title: PronunciationStatus
+    PronunciationSummary:
+      properties:
+        status:
+          type: string
+          enum:
+          - not_configured
+          - pending
+          - completed
+          - partial
+          - failed
+          title: Status
+        patterns:
+          items:
+            $ref: '#/components/schemas/PronunciationPattern'
+          type: array
+          title: Patterns
+        interpretation:
+          type: string
+          title: Interpretation
+          default: Pronunciation diagnostics come from the configured phoneme/MDD
+            service, not ASR equality.
+      additionalProperties: false
+      type: object
+      required:
+      - status
+      title: PronunciationSummary
+    ResponseDecision:
+      type: string
+      enum:
+      - pass
+      - borderline
+      - fail
+      - invalid_audio
+      - not_scored
+      title: ResponseDecision
+    ResponseResult:
+      properties:
+        assessment_id:
+          type: string
+          title: Assessment Id
+        response_id:
+          type: string
+          title: Response Id
+        response_decision:
+          $ref: '#/components/schemas/ResponseDecision'
+        weighted_score:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Weighted Score
+        stage_status:
+          type: string
+          title: Stage Status
+        next_action:
+          $ref: '#/components/schemas/NextAction'
+        current_level:
+          anyOf:
+          - $ref: '#/components/schemas/CEFRLevel'
+          - type: 'null'
+        progress:
+          $ref: '#/components/schemas/AssessmentProgress'
+        idempotent_replay:
+          type: boolean
+          title: Idempotent Replay
+          default: false
+      additionalProperties: false
+      type: object
+      required:
+      - assessment_id
+      - response_id
+      - response_decision
+      - stage_status
+      - next_action
+      - current_level
+      - progress
+      title: ResponseResult
+    ResponseSubmission:
+      properties:
+        response_id:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: Response Id
+        idempotency_key:
+          type: string
+          maxLength: 128
+          minLength: 8
+          title: Idempotency Key
+        prompt_id:
+          type: string
+          maxLength: 160
+          minLength: 1
+          title: Prompt Id
+        item_id:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: Item Id
+        prompt_kind:
+          $ref: '#/components/schemas/PromptKind'
+        transcript:
+          type: string
+          maxLength: 20000
+          title: Transcript
+          default: ''
+        words:
+          items:
+            $ref: '#/components/schemas/WordTiming'
+          type: array
+          maxItems: 5000
+          title: Words
+        response_started_at_ms:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Response Started At Ms
+        response_ended_at_ms:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Response Ended At Ms
+        audio_uri:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+          title: Audio Uri
+        prompt_repetitions:
+          type: integer
+          maximum: 10.0
+          minimum: 0.0
+          title: Prompt Repetitions
+          default: 0
+        clarification_requests:
+          type: integer
+          maximum: 20.0
+          minimum: 0.0
+          title: Clarification Requests
+          default: 0
+        asr_confidence:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: 'null'
+          title: Asr Confidence
+        explicit_audio_issue:
+          type: boolean
+          title: Explicit Audio Issue
+          default: false
+        audio_issue_reason:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Audio Issue Reason
+        session_interrupted:
+          type: boolean
+          title: Session Interrupted
+          default: false
+      additionalProperties: false
+      type: object
+      required:
+      - response_id
+      - idempotency_key
+      - prompt_id
+      - item_id
+      - prompt_kind
+      title: ResponseSubmission
+    ResultConfidence:
+      type: string
+      enum:
+      - high
+      - medium
+      - low
+      title: ResultConfidence
+    RetentionResponse:
+      properties:
+        deleted_audio_objects:
+          type: integer
+          title: Deleted Audio Objects
+        retention_days:
+          type: integer
+          title: Retention Days
+      additionalProperties: false
+      type: object
+      required:
+      - deleted_audio_objects
+      - retention_days
+      title: RetentionResponse
+    ScenarioEvaluation:
+      properties:
+        pronunciation:
+          type: boolean
+          title: Pronunciation
+          default: true
+        fluency:
+          type: boolean
+          title: Fluency
+          default: true
+        target_words:
+          items:
+            type: string
+          type: array
+          maxItems: 30
+          title: Target Words
+      additionalProperties: false
+      type: object
+      title: ScenarioEvaluation
+    ScenarioSummary:
+      properties:
+        scenario_id:
+          type: string
+          title: Scenario Id
+        scenario_version:
+          type: integer
+          title: Scenario Version
+        domain_id:
+          type: string
+          title: Domain Id
+        domain_title:
+          type: string
+          title: Domain Title
+        theme:
+          type: string
+          title: Theme
+        title:
+          type: string
+          title: Title
+        required_level:
+          $ref: '#/components/schemas/CEFRLevel'
+        estimated_minutes:
+          type: integer
+          title: Estimated Minutes
+        learner_role:
+          type: string
+          title: Learner Role
+        system_role:
+          type: string
+          title: System Role
+        objective:
+          type: string
+          title: Objective
+        turn_count:
+          type: integer
+          title: Turn Count
+        is_locked:
+          type: boolean
+          title: Is Locked
+        lock_reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Lock Reason
+      additionalProperties: false
+      type: object
+      required:
+      - scenario_id
+      - scenario_version
+      - domain_id
+      - domain_title
+      - theme
+      - title
+      - required_level
+      - estimated_minutes
+      - learner_role
+      - system_role
+      - objective
+      - turn_count
+      - is_locked
+      title: ScenarioSummary
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    VersionActivationRequest:
+      properties:
+        item_bank_version:
+          type: string
+          pattern: ^[0-9]+\.[0-9]+\.[0-9]+$
+          title: Item Bank Version
+      additionalProperties: false
+      type: object
+      required:
+      - item_bank_version
+      title: VersionActivationRequest
+    VersionActivationResponse:
+      properties:
+        active_item_bank_version:
+          type: string
+          title: Active Item Bank Version
+        restart_required:
+          type: boolean
+          title: Restart Required
+        message:
+          type: string
+          title: Message
+      additionalProperties: false
+      type: object
+      required:
+      - active_item_bank_version
+      - restart_required
+      - message
+      title: VersionActivationResponse
+    VersionSet:
+      properties:
+        assessment:
+          type: string
+          title: Assessment
+        item_bank:
+          type: string
+          title: Item Bank
+        rubric:
+          type: string
+          title: Rubric
+        scorer:
+          type: string
+          title: Scorer
+        fluency:
+          type: string
+          title: Fluency
+          default: fluency-v0.1
+      additionalProperties: false
+      type: object
+      required:
+      - assessment
+      - item_bank
+      - rubric
+      - scorer
+      title: VersionSet
+    WordTiming:
+      properties:
+        word:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Word
+        start:
+          type: number
+          minimum: 0.0
+          title: Start
+        end:
+          type: number
+          minimum: 0.0
+          title: End
+        confidence:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: 'null'
+          title: Confidence
+      additionalProperties: false
+      type: object
+      required:
+      - word
+      - start
+      - end
+      title: WordTiming

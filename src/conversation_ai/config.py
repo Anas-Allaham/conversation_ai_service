@@ -1,13 +1,79 @@
 from __future__ import annotations
 
+import os
+from dataclasses import dataclass
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
+from dotenv import load_dotenv
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 SERVICE_NAME = "conversation-ai-service"
 API_VERSION = "v1"
+
+
+def load_runtime_environment(project_root: Path | None = None) -> None:
+    """Load local environment files once with `.env.local` taking precedence."""
+
+    root = (project_root or Path.cwd()).resolve()
+    load_dotenv(root / ".env.local")
+    load_dotenv(root / ".env", override=False)
+
+
+def env_float(name: str, default: float) -> float:
+    """Read a numeric runtime override with one consistent error contract."""
+
+    raw = os.getenv(name)
+    if raw is None or not raw.strip():
+        return default
+    try:
+        return float(raw)
+    except ValueError as exc:
+        raise RuntimeError(f"{name} must be a number; received {raw!r}.") from exc
+
+
+def env_int(name: str, default: int) -> int:
+    """Read an integer runtime override with one consistent error contract."""
+
+    raw = os.getenv(name)
+    if raw is None or not raw.strip():
+        return default
+    try:
+        return int(raw)
+    except ValueError as exc:
+        raise RuntimeError(f"{name} must be an integer; received {raw!r}.") from exc
+
+
+@dataclass(frozen=True, slots=True)
+class LiveKitConfig:
+    """Shared LiveKit credentials and dispatch identity for every local service."""
+
+    url: str
+    api_key: str
+    api_secret: str
+    agent_name: str = "english-tutor"
+
+    @classmethod
+    def from_env(cls) -> LiveKitConfig:
+        return cls(
+            url=os.getenv("LIVEKIT_URL", ""),
+            api_key=os.getenv("LIVEKIT_API_KEY", ""),
+            api_secret=os.getenv("LIVEKIT_API_SECRET", ""),
+            agent_name=os.getenv("LIVEKIT_AGENT_NAME", "english-tutor").strip()
+            or "english-tutor",
+        )
+
+    def missing(self, *, include_agent_name: bool = True) -> list[str]:
+        values = {
+            "LIVEKIT_URL": self.url,
+            "LIVEKIT_API_KEY": self.api_key,
+            "LIVEKIT_API_SECRET": self.api_secret,
+        }
+        if include_agent_name:
+            values["LIVEKIT_AGENT_NAME"] = self.agent_name
+        return [name for name, value in values.items() if not value]
 
 
 class Settings(BaseSettings):
@@ -81,39 +147,35 @@ class Settings(BaseSettings):
 
     @property
     def conversation_start_configured(self) -> bool:
-        return all(
-            (
-                self.livekit_url,
-                self.livekit_api_key.get_secret_value(),
-                self.livekit_api_secret.get_secret_value(),
-                self.livekit_agent_name.strip(),
-            )
+        return not self.livekit.missing()
+
+    @property
+    def livekit(self) -> LiveKitConfig:
+        return LiveKitConfig(
+            url=self.livekit_url,
+            api_key=self.livekit_api_key.get_secret_value(),
+            api_secret=self.livekit_api_secret.get_secret_value(),
+            agent_name=self.livekit_agent_name.strip(),
         )
 
     def require_conversation_start_environment(self) -> None:
-        required = {
-            "LIVEKIT_URL": self.livekit_url,
-            "LIVEKIT_API_KEY": self.livekit_api_key.get_secret_value(),
-            "LIVEKIT_API_SECRET": self.livekit_api_secret.get_secret_value(),
-            "LIVEKIT_AGENT_NAME": self.livekit_agent_name.strip(),
-        }
-        missing = [name for name, value in required.items() if not value]
+        missing = self.livekit.missing()
         if missing:
             raise RuntimeError("Missing required environment values: " + ", ".join(missing))
 
-    def require_agent_environment(self) -> None:
+    def require_agent_environment(self, *, include_database: bool = True) -> None:
         required = {
-            "LIVEKIT_URL": self.livekit_url,
-            "LIVEKIT_API_KEY": self.livekit_api_key.get_secret_value(),
-            "LIVEKIT_API_SECRET": self.livekit_api_secret.get_secret_value(),
             "DEEPGRAM_API_KEY": self.deepgram_api_key.get_secret_value(),
-            "DATABASE_URL": self.database_url.get_secret_value(),
         }
-        missing = [name for name, value in required.items() if not value]
+        if include_database:
+            required["DATABASE_URL"] = self.database_url.get_secret_value()
+        missing = self.livekit.missing(include_agent_name=False)
+        missing.extend(name for name, value in required.items() if not value)
         if missing:
             raise RuntimeError("Missing required environment values: " + ", ".join(missing))
 
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
+    load_runtime_environment()
     return Settings()

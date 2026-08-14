@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/assessment-pronunciation-request-v0.1.json",
+  "title": "Assessment pronunciation request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["event_type", "event_id", "occurred_at", "assessment_id", "response_id", "reference_text", "audio_uri"],
+  "properties": {
+    "event_type": {"const": "assessment.pronunciation_requested"},
+    "event_id": {"type": "string"},
+    "occurred_at": {"type": "string", "format": "date-time"},
+    "assessment_id": {"type": "string"},
+    "response_id": {"type": "string"},
+    "reference_text": {"type": "string"},
+    "audio_uri": {"type": "string"},
+    "callback_url": {"type": ["string", "null"]}
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "id": "restaurant.order_meal.a1",
+  "version": 1,
+  "status": "published",
+  "domain_id": "restaurant",
+  "theme": "ordering_meals",
+  "title": "Ordering a Simple Meal",
+  "required_level": "A1",
+  "estimated_minutes": 3,
+  "learner_role": "customer",
+  "system_role": "restaurant server",
+  "objective": "Request a table, order a meal, and ask for the bill",
+  "situation": "You are having dinner in a restaurant with one other person.",
+  "useful_vocabulary": ["table", "vegetable", "chicken", "water", "bill"],
+  "target_functions": ["request a table", "order food", "ask for the bill"],
+  "target_phonemes": ["/θ/", "/v/", "/p/"],
+  "closing_display_text": "Thank you. I hope you enjoyed your meal.",
+  "closing_spoken_text": "Thank you. I hope you enjoyed your meal.",
+  "turns": [
+    {
+      "id": "turn_01",
+      "assistant_display_text": "Good evening. How many people?",
+      "assistant_spoken_text": "Good evening. How many people?",
+      "assistant_audio_asset": null,
+      "user_display_text": "A table for two, please.",
+      "user_expected_text": "A table for two, please.",
+      "arabic_hint": "اطلب طاولة لشخصين.",
+      "expected_pause_after_word_indexes": [4],
+      "evaluation": {"pronunciation": true, "fluency": true, "target_words": ["table", "two", "please"]}
+    },
+    {
+      "id": "turn_02",
+      "assistant_display_text": "Here is the menu. Are you ready to order?",
+      "assistant_spoken_text": "Here is the menu. Are you ready to order?",
+      "assistant_audio_asset": null,
+      "user_display_text": "Yes, I would like the vegetable soup, please.",
+      "user_expected_text": "Yes, I would like the vegetable soup, please.",
+      "arabic_hint": "اطلب شوربة الخضار.",
+      "expected_pause_after_word_indexes": [1, 7],
+      "evaluation": {"pronunciation": true, "fluency": true, "target_words": ["vegetable", "soup", "please"]}
+    },
+    {
+      "id": "turn_03",
+      "assistant_display_text": "What would you like for your main course?",
+      "assistant_spoken_text": "What would you like for your main course?",
+      "assistant_audio_asset": null,
+      "user_display_text": "I would like the grilled chicken and rice.",
+      "user_expected_text": "I would like the grilled chicken and rice.",
+      "arabic_hint": "اطلب الدجاج المشوي مع الأرز.",
+      "expected_pause_after_word_indexes": [],
+      "evaluation": {"pronunciation": true, "fluency": true, "target_words": ["grilled", "chicken"]}
+    },
+    {
+      "id": "turn_04",
+      "assistant_display_text": "Would you like something to drink?",
+      "assistant_spoken_text": "Would you like something to drink?",
+      "assistant_audio_asset": null,
+      "user_display_text": "A bottle of water, please.",
+      "user_expected_text": "A bottle of water, please.",
+      "arabic_hint": "اطلب زجاجة ماء.",
+      "expected_pause_after_word_indexes": [4],
+      "evaluation": {"pronunciation": true, "fluency": true, "target_words": ["bottle", "water", "please"]}
+    },
+    {
+      "id": "turn_05",
+      "assistant_display_text": "Would you like any dessert?",
+      "assistant_spoken_text": "Would you like any dessert?",
+      "assistant_audio_asset": null,
+      "user_display_text": "No, thank you. Can I have the bill, please?",
+      "user_expected_text": "No, thank you. Can I have the bill, please?",
+      "arabic_hint": "ارفض الحلوى واطلب الفاتورة.",
+      "expected_pause_after_word_indexes": [3, 8],
+      "evaluation": {"pronunciation": true, "fluency": true, "target_words": ["thank", "bill", "please"]}
+    },
+    {
+      "id": "turn_06",
+      "assistant_display_text": "Of course. Will you pay by cash or card?",
+      "assistant_spoken_text": "Of course. Will you pay by cash or card?",
+      "assistant_audio_asset": null,
+      "user_display_text": "I will pay by card. Thank you.",
+      "user_expected_text": "I will pay by card. Thank you.",
+      "arabic_hint": "اختر الدفع بالبطاقة واشكر الموظف.",
+      "expected_pause_after_word_indexes": [5],
+      "evaluation": {"pronunciation": true, "fluency": true, "target_words": ["pay", "thank"]}
+    }
+  ]
+}

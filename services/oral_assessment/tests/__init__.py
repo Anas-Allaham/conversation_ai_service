@@ -1,0 +1,1 @@
+"""Automated assessment tests."""

@@ -4,10 +4,10 @@ build-backend = "hatchling.build"
 
 [project]
 name = "conversation-ai-service"
-version = "0.1.0"
-description = "Realtime English tutor agent and internal conversation-session API"
+version = "0.6.0"
+description = "Realtime English tutor, guided practice, and adaptive oral assessment service"
 readme = "README.md"
-requires-python = ">=3.11,<3.14"
+requires-python = ">=3.10,<3.14"
 dependencies = [
   "alembic>=1.16,<2",
   "asyncpg>=0.30,<1",
@@ -27,34 +27,49 @@ api = [
   "fastapi>=0.116,<1",
   "uvicorn[standard]>=0.35,<1",
 ]
+assessment = [
+  "boto3>=1.40,<2",
+  "cryptography>=45,<50",
+  "fastapi>=0.116,<1",
+  "google-genai>=1.75,<3",
+  "openai>=1.99,<3",
+  "psycopg[binary,pool]>=3.2,<4",
+  "python-multipart>=0.0.20,<1",
+  "uvicorn[standard]>=0.35,<1",
+]
 modal = [
   "fastapi>=0.116,<1",
   "modal>=1.1,<2",
 ]
-
-[dependency-groups]
 dev = [
   "aiosqlite>=0.21,<1",
   "httpx>=0.28,<1",
-  "pytest>=8.4,<9",
+  "pytest>=8.4,<10",
   "pytest-asyncio>=1.1,<2",
+  "pyyaml>=6,<7",
   "ruff>=0.12,<1",
   "sounddevice>=0.5,<1",
+  "soundfile>=0.12,<1",
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/conversation_ai"]
+packages = ["src/conversation_ai", "app", "services"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-testpaths = ["tests"]
+pythonpath = [".", "src"]
+testpaths = ["tests", "services/oral_assessment/tests"]
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py310"
 line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "ASYNC"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tools/*.py" = ["E402"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["conversation_ai"]
+known-first-party = ["app", "conversation_ai", "services"]

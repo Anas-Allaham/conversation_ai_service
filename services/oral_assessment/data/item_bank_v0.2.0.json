@@ -1,0 +1,183 @@
+{
+  "bank_name": "Real-Time English Tutor Original Oral Placement Bank",
+  "version": "0.2.0",
+  "frozen_at": "2026-08-07",
+  "content_policy": "Original project-authored prompts only; no proprietary test content and no runtime prompt generation.",
+  "items": [
+    {
+      "item_id": "A1_ROUTINE_001", "version": "0.2.0", "status": "active", "source": "original_project_item", "target_level": "A1", "kind": "normal", "task_type": "familiar_routine", "domain": "daily_life",
+      "communicative_functions": ["describe familiar actions", "sequence simple events"],
+      "main_prompt": "Tell me what you usually do after you wake up and before you leave home.",
+      "main_clarification_prompt": "Describe two or three things you do in the morning, in the order you do them.",
+      "follow_up_prompt": "Which part of your morning do you like most, and why?",
+      "follow_up_clarification_prompt": "Name one morning activity you like and give one simple reason.",
+      "expected_response_seconds": {"minimum": 15, "maximum": 45}, "follow_up_response_seconds": {"minimum": 8, "maximum": 30},
+      "support_policy": {"repeat_prompt": 1, "paraphrase_prompt": false}, "required_evidence": ["familiar actions", "basic sequence", "simple personal reason"], "grammar_independently_scored": false,
+      "review": {"author": "project-team", "reviewer": "AI-assisted internal review", "review_status": "approved", "reviewed_at": "2026-08-07", "notes": "Requires named human owner sign-off before formal validation claims."}
+    },
+    {
+      "item_id": "A1_PLACE_002", "version": "0.2.0", "status": "active", "source": "original_project_item", "target_level": "A1", "kind": "normal", "task_type": "familiar_place", "domain": "local_area",
+      "communicative_functions": ["identify a place", "give a simple reason"],
+      "main_prompt": "Tell me about a place near your home that you often visit.",
+      "main_clarification_prompt": "Name a place near your home and say what you do there.",
+      "follow_up_prompt": "Who do you usually go there with?",
+      "follow_up_clarification_prompt": "Say whether you go alone or with another person.",
+      "expected_response_seconds": {"minimum": 15, "maximum": 45}, "follow_up_response_seconds": {"minimum": 8, "maximum": 30},
+      "support_policy": {"repeat_prompt": 1, "paraphrase_prompt": false}, "required_evidence": ["place", "usual activity", "companion or alone"], "grammar_independently_scored": false,
+      "review": {"author": "project-team", "reviewer": "AI-assisted internal review", "review_status": "approved", "reviewed_at": "2026-08-07", "notes": "Culturally open familiar-place task."}
+    },
+    {
+      "item_id": "A1_FOOD_003", "version": "0.2.0", "status": "active", "source": "original_project_item", "target_level": "A1", "kind": "normal", "task_type": "simple_preference", "domain": "food",
+      "communicative_functions": ["state a preference", "give simple information"],
+      "main_prompt": "Tell me about a food or drink you like and say why you like it.",
+      "main_clarification_prompt": "Name one food or drink you like and give one reason.",
+      "follow_up_prompt": "When do you usually have it?",
+      "follow_up_clarification_prompt": "Say what time or on what occasion you usually have it.",
+      "expected_response_seconds": {"minimum": 15, "maximum": 45}, "follow_up_response_seconds": {"minimum": 8, "maximum": 30},
+      "support_policy": {"repeat_prompt": 1, "paraphrase_prompt": false}, "required_evidence": ["preference", "simple reason", "time or occasion"], "grammar_independently_scored": false,
+      "review": {"author": "project-team", "reviewer": "AI-assisted internal review", "review_status": "approved", "reviewed_at": "2026-08-07", "notes": "Broad-access personal preference task."}
+    },
+    {
+      "item_id": "A1_TIE_FAMILY_001", "version": "0.2.0", "status": "active", "source": "original_project_item", "target_level": "A1", "kind": "tie_breaker", "task_type": "person_description", "domain": "people",
+      "communicative_functions": ["describe a familiar person"],
+      "main_prompt": "Describe a person you know well. Tell me what the person is like and one thing you do together.",
+      "main_clarification_prompt": "Choose someone you know. Describe the person and one activity you do together.",
+      "follow_up_prompt": null, "follow_up_clarification_prompt": null,
+      "expected_response_seconds": {"minimum": 15, "maximum": 45}, "follow_up_response_seconds": null,
+      "support_policy": {"repeat_prompt": 1, "paraphrase_prompt": false}, "required_evidence": ["person description", "shared activity"], "grammar_independently_scored": false,
+      "review": {"author": "project-team", "reviewer": "AI-assisted internal review", "review_status": "approved", "reviewed_at": "2026-08-07", "notes": "Independent A1 boundary evidence."}
+    },
+
+    {
+      "item_id": "A2_SHOP_001", "version": "0.2.0", "status": "active", "source": "original_project_item", "target_level": "A2", "kind": "normal", "task_type": "transaction_role_play", "domain": "stationery_shop",
+      "communicative_functions": ["request an item", "ask a price", "adapt a choice"],
+      "main_prompt": "You are in a stationery shop. Ask me for two notebooks and a pen, then ask for the total price.",
+      "main_clarification_prompt": "Pretend I work in the shop. Ask for two notebooks, one pen, and the total price.",
+      "follow_up_prompt": "The blue notebooks are unavailable. Choose another color and confirm how many you want.",
+      "follow_up_clarification_prompt": "Choose a different notebook color and repeat the number you need.",
+      "expected_response_seconds": {"minimum": 25, "maximum": 60}, "follow_up_response_seconds": {"minimum": 12, "maximum": 45},
+      "support_policy": {"repeat_prompt": 1, "paraphrase_prompt": false}, "required_evidence": ["complete request", "price question", "changed option"], "grammar_independently_scored": false,
+      "review": {"author": "project-team", "reviewer": "AI-assisted internal review", "review_status": "approved", "reviewed_at": "2026-08-07", "notes": "Predictable transaction with one changed condition."}
+    },
+    {
+      "item_id": "A2_TRAVEL_002", "version": "0.2.0", "status": "active", "source": "original_project_item", "target_level": "A2", "kind": "normal", "task_type": "travel_transaction", "domain": "bus_station",
+      "communicative_functions": ["ask for schedule information", "state a need", "choose an alternative"],
+      "main_prompt": "You need a bus that arrives before ten in the morning. Ask me about the departure time and ticket price.",
+      "main_clarification_prompt": "Pretend I work at the bus station. Ask when the bus leaves and how much the ticket costs.",
+      "follow_up_prompt": "That bus is full. Ask about another bus and decide whether the new time is suitable.",
+      "follow_up_clarification_prompt": "Ask for a different bus, then say if its time works for you.",
+      "expected_response_seconds": {"minimum": 25, "maximum": 60}, "follow_up_response_seconds": {"minimum": 12, "maximum": 45},
+      "support_policy": {"repeat_prompt": 1, "paraphrase_prompt": false}, "required_evidence": ["schedule question", "ticket question", "response to alternative"], "grammar_independently_scored": false,
+      "review": {"author": "project-team", "reviewer": "AI-assisted internal review", "review_status": "approved", "reviewed_at": "2026-08-07", "notes": "Routine schedule need and alternative."}
+    },
+    {
+      "item_id": "A2_APPOINTMENT_003", "version": "0.2.0", "status": "active", "source": "original_project_item", "target_level": "A2", "kind": "normal", "task_type": "appointment_negotiation", "domain": "haircut_booking",
+      "communicative_functions": ["request an appointment", "respond to an unavailable time", "confirm details"],
+      "main_prompt": "You want to book a haircut on Monday at four o'clock. Call the salon and ask me for that appointment.",
+      "main_clarification_prompt": "Pretend I work at a hair salon. Ask for a haircut appointment on Monday at four o'clock.",
+      "follow_up_prompt": "Four o'clock is unavailable, but six o'clock is free. Respond and confirm the day and new time.",
+      "follow_up_clarification_prompt": "Say if six o'clock works, then repeat Monday and the time you choose.",
+      "expected_response_seconds": {"minimum": 25, "maximum": 60}, "follow_up_response_seconds": {"minimum": 12, "maximum": 45},
+      "support_policy": {"repeat_prompt": 1, "paraphrase_prompt": false}, "required_evidence": ["haircut request", "Monday", "four o'clock", "changed time confirmation"], "grammar_independently_scored": false,
+      "review": {"author": "project-team", "reviewer": "AI-assisted internal review", "review_status": "approved", "reviewed_at": "2026-08-07", "notes": "Revised to remove ambiguous service and scheduling frame."}
+    },
+    {
+      "item_id": "A2_TIE_RETURN_001", "version": "0.2.0", "status": "active", "source": "original_project_item", "target_level": "A2", "kind": "tie_breaker", "task_type": "routine_problem", "domain": "shop_return",
+      "communicative_functions": ["explain a simple problem", "request a solution"],
+      "main_prompt": "You bought a lamp yesterday, but it does not work. Explain the problem to the shop assistant and ask for a replacement or refund.",
+      "main_clarification_prompt": "Pretend I work in the shop. Say when you bought the broken lamp and ask for a solution.",
+      "follow_up_prompt": null, "follow_up_clarification_prompt": null,
+      "expected_response_seconds": {"minimum": 25, "maximum": 60}, "follow_up_response_seconds": null,
+      "support_policy": {"repeat_prompt": 1, "paraphrase_prompt": false}, "required_evidence": ["purchase timing", "problem explanation", "requested solution"], "grammar_independently_scored": false,
+      "review": {"author": "project-team", "reviewer": "AI-assisted internal review", "review_status": "approved", "reviewed_at": "2026-08-07", "notes": "Independent predictable-problem boundary task."}
+    },
+
+    {
+      "item_id": "B1_TEAMWORK_001", "version": "0.2.0", "status": "active", "source": "original_project_item", "target_level": "B1", "kind": "normal", "task_type": "experience_problem_solution", "domain": "team_project",
+      "communicative_functions": ["narrate an experience", "explain causes", "describe a solution"],
+      "main_prompt": "Tell me about a time when a team project did not go as planned. Explain what happened and how the team responded.",
+      "main_clarification_prompt": "Describe a team problem, why it happened, and what the team did next.",
+      "follow_up_prompt": "What would you do differently if the same problem happened again?",
+      "follow_up_clarification_prompt": "Choose one different action and explain why it would help.",
+      "expected_response_seconds": {"minimum": 40, "maximum": 100}, "follow_up_response_seconds": {"minimum": 20, "maximum": 60},
+      "support_policy": {"repeat_prompt": 1, "paraphrase_prompt": false}, "required_evidence": ["connected sequence", "cause", "response", "reflection"], "grammar_independently_scored": false,
+      "review": {"author": "project-team", "reviewer": "AI-assisted internal review", "review_status": "approved", "reviewed_at": "2026-08-07", "notes": "Cause-sequence-solution evidence."}
+    },
+    {
+      "item_id": "B1_SKILL_002", "version": "0.2.0", "status": "active", "source": "original_project_item", "target_level": "B1", "kind": "normal", "task_type": "learning_experience", "domain": "personal_development",
+      "communicative_functions": ["describe a process", "explain difficulty", "give advice"],
+      "main_prompt": "Tell me about a skill you learned. Explain why you chose it, what was difficult, and how you improved.",
+      "main_clarification_prompt": "Choose one skill. Explain your reason, one difficulty, and how you got better.",
+      "follow_up_prompt": "What advice would you give to someone beginning that skill?",
+      "follow_up_clarification_prompt": "Give one or two useful pieces of advice to a beginner.",
+      "expected_response_seconds": {"minimum": 40, "maximum": 100}, "follow_up_response_seconds": {"minimum": 20, "maximum": 60},
+      "support_policy": {"repeat_prompt": 1, "paraphrase_prompt": false}, "required_evidence": ["learning motivation", "difficulty", "improvement process", "advice"], "grammar_independently_scored": false,
+      "review": {"author": "project-team", "reviewer": "AI-assisted internal review", "review_status": "approved", "reviewed_at": "2026-08-07", "notes": "Broad personal-access learning task."}
+    },
+    {
+      "item_id": "B1_EVENT_003", "version": "0.2.0", "status": "active", "source": "original_project_item", "target_level": "B1", "kind": "normal", "task_type": "hypothetical_problem", "domain": "community_event",
+      "communicative_functions": ["explain a developing problem", "propose solutions", "justify a choice"],
+      "main_prompt": "Imagine you are organizing a small event and the main speaker cancels that morning. Explain two possible solutions and choose one.",
+      "main_clarification_prompt": "The speaker cancelled. Give two ways to continue the event and say which way is better.",
+      "follow_up_prompt": "How would you explain the change to the people attending?",
+      "follow_up_clarification_prompt": "Say what you would tell the audience about the change.",
+      "expected_response_seconds": {"minimum": 40, "maximum": 100}, "follow_up_response_seconds": {"minimum": 20, "maximum": 60},
+      "support_policy": {"repeat_prompt": 1, "paraphrase_prompt": false}, "required_evidence": ["two solutions", "chosen solution", "reason", "audience communication"], "grammar_independently_scored": false,
+      "review": {"author": "project-team", "reviewer": "AI-assisted internal review", "review_status": "approved", "reviewed_at": "2026-08-07", "notes": "Hypothetical task avoids requiring prior event experience."}
+    },
+    {
+      "item_id": "B1_TIE_DECISION_001", "version": "0.2.0", "status": "active", "source": "original_project_item", "target_level": "B1", "kind": "tie_breaker", "task_type": "decision_and_justification", "domain": "study_schedule",
+      "communicative_functions": ["compare alternatives", "make a decision", "justify a plan"],
+      "main_prompt": "A student has too much work for one week. Compare two ways to organize the tasks, choose one, and explain why it is better.",
+      "main_clarification_prompt": "Give two possible study plans, choose one plan, and explain your reason.",
+      "follow_up_prompt": null, "follow_up_clarification_prompt": null,
+      "expected_response_seconds": {"minimum": 40, "maximum": 100}, "follow_up_response_seconds": null,
+      "support_policy": {"repeat_prompt": 1, "paraphrase_prompt": false}, "required_evidence": ["two alternatives", "choice", "justification"], "grammar_independently_scored": false,
+      "review": {"author": "project-team", "reviewer": "AI-assisted internal review", "review_status": "approved", "reviewed_at": "2026-08-07", "notes": "Independent B1 decision boundary task."}
+    },
+
+    {
+      "item_id": "B2_INTERNSHIP_001", "version": "0.2.0", "status": "active", "source": "original_project_item", "target_level": "B2", "kind": "normal", "task_type": "policy_discussion", "domain": "education_and_work",
+      "communicative_functions": ["evaluate a proposal", "balance benefits and risks", "answer a counterargument"],
+      "main_prompt": "Some programs require every student to complete an unpaid internship. Discuss the benefits and problems, then state your position.",
+      "main_clarification_prompt": "Compare the advantages and disadvantages of compulsory unpaid internships and give your view.",
+      "follow_up_prompt": "Supporters say experience is more valuable than short-term pay. How would you respond?",
+      "follow_up_clarification_prompt": "Answer the argument that experience should matter more than payment.",
+      "expected_response_seconds": {"minimum": 55, "maximum": 120}, "follow_up_response_seconds": {"minimum": 30, "maximum": 75},
+      "support_policy": {"repeat_prompt": 1, "paraphrase_prompt": false}, "required_evidence": ["benefit", "risk", "position", "counterargument response"], "grammar_independently_scored": false,
+      "review": {"author": "project-team", "reviewer": "AI-assisted internal review", "review_status": "approved", "reviewed_at": "2026-08-07", "notes": "Access, learning, and fairness trade-off."}
+    },
+    {
+      "item_id": "B2_TRANSPORT_002", "version": "0.2.0", "status": "active", "source": "original_project_item", "target_level": "B2", "kind": "normal", "task_type": "public_policy_comparison", "domain": "city_transport",
+      "communicative_functions": ["compare policies", "consider stakeholders", "qualify a recommendation"],
+      "main_prompt": "A city can either lower bus fares or invest in more frequent service. Compare the options and recommend one.",
+      "main_clarification_prompt": "Compare cheaper tickets with more frequent buses, then choose which policy the city should use.",
+      "follow_up_prompt": "How might your recommendation affect people who live far from the city center?",
+      "follow_up_clarification_prompt": "Explain how people in distant areas could be helped or harmed by your choice.",
+      "expected_response_seconds": {"minimum": 55, "maximum": 120}, "follow_up_response_seconds": {"minimum": 30, "maximum": 75},
+      "support_policy": {"repeat_prompt": 1, "paraphrase_prompt": false}, "required_evidence": ["comparison", "recommendation", "stakeholder impact", "qualification"], "grammar_independently_scored": false,
+      "review": {"author": "project-team", "reviewer": "AI-assisted internal review", "review_status": "approved", "reviewed_at": "2026-08-07", "notes": "Public trade-off with accessibility dimension."}
+    },
+    {
+      "item_id": "B2_FEEDBACK_003", "version": "0.2.0", "status": "active", "source": "original_project_item", "target_level": "B2", "kind": "normal", "task_type": "system_evaluation", "domain": "learning_feedback",
+      "communicative_functions": ["evaluate a system", "propose safeguards", "respond to a practical constraint"],
+      "main_prompt": "A school wants to replace most teacher feedback with automated feedback. Evaluate the idea and propose safeguards.",
+      "main_clarification_prompt": "Discuss benefits and risks of automated learning feedback and suggest ways to make it safer.",
+      "follow_up_prompt": "The school says it cannot afford both systems. How would you adjust your proposal?",
+      "follow_up_clarification_prompt": "Revise your plan for a limited budget while protecting feedback quality.",
+      "expected_response_seconds": {"minimum": 55, "maximum": 120}, "follow_up_response_seconds": {"minimum": 30, "maximum": 75},
+      "support_policy": {"repeat_prompt": 1, "paraphrase_prompt": false}, "required_evidence": ["benefits", "risks", "safeguards", "budget response"], "grammar_independently_scored": false,
+      "review": {"author": "project-team", "reviewer": "AI-assisted internal review", "review_status": "approved", "reviewed_at": "2026-08-07", "notes": "Reliability and safeguard discussion."}
+    },
+    {
+      "item_id": "B2_TIE_FLEXIBILITY_001", "version": "0.2.0", "status": "active", "source": "original_project_item", "target_level": "B2", "kind": "tie_breaker", "task_type": "balanced_argument", "domain": "attendance_policy",
+      "communicative_functions": ["synthesize competing principles", "propose a balanced policy", "justify exceptions"],
+      "main_prompt": "Design a fair attendance policy that allows flexibility for genuine difficulties without making participation meaningless. Explain and defend your balance.",
+      "main_clarification_prompt": "Propose an attendance rule that is both fair and flexible, then explain how it prevents misuse.",
+      "follow_up_prompt": null, "follow_up_clarification_prompt": null,
+      "expected_response_seconds": {"minimum": 55, "maximum": 120}, "follow_up_response_seconds": null,
+      "support_policy": {"repeat_prompt": 1, "paraphrase_prompt": false}, "required_evidence": ["fairness principle", "flexibility mechanism", "misuse safeguard", "defense"], "grammar_independently_scored": false,
+      "review": {"author": "project-team", "reviewer": "AI-assisted internal review", "review_status": "approved", "reviewed_at": "2026-08-07", "notes": "Independent B2 synthesis boundary task."}
+    }
+  ]
+}

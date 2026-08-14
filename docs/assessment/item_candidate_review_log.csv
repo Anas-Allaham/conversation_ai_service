@@ -1,0 +1,33 @@
+candidate_id,target_level,category,disposition,selected_item_id,review_summary
+A1-C01,A1,morning routine,selected,A1_ROUTINE_001,Clear familiar sequence and direct follow-up
+A1-C02,A1,local place,selected,A1_PLACE_002,Culturally open familiar place
+A1-C03,A1,food preference,selected,A1_FOOD_003,Simple preference with time follow-up
+A1-C04,A1,people description,selected,A1_TIE_FAMILY_001,Good independent tie evidence
+A1-C05,A1,weather,rejected,,Risk of one-word answers
+A1-C06,A1,school timetable,rejected,,Assumes formal education context
+A1-C07,A1,pets,rejected,,Not universally accessible
+A1-C08,A1,shopping list,rejected,,Too close to A2 transaction function
+A2-C01,A2,stationery transaction,selected,A2_SHOP_001,Request price and changed option
+A2-C02,A2,bus transaction,selected,A2_TRAVEL_002,Schedule need and alternative
+A2-C03,A2,appointment,selected,A2_APPOINTMENT_003,Simple negotiation and confirmation
+A2-C04,A2,return problem,selected,A2_TIE_RETURN_001,Independent routine problem evidence
+A2-C05,A2,hotel booking,rejected,,Travel access may be uneven
+A2-C06,A2,restaurant order,rejected,,Overused assessment scenario
+A2-C07,A2,directions,rejected,,Could depend on unseen map
+A2-C08,A2,online purchase,rejected,,Adds interface-specific vocabulary
+B1-C01,B1,team project,selected,B1_TEAMWORK_001,Cause sequence solution and reflection
+B1-C02,B1,learning skill,selected,B1_SKILL_002,Broad personal access and advice
+B1-C03,B1,event failure,selected,B1_EVENT_003,Hypothetical alternative avoids history bias
+B1-C04,B1,study schedule,selected,B1_TIE_DECISION_001,Two solutions and justified choice
+B1-C05,B1,travel disruption,rejected,,Travel opportunity bias
+B1-C06,B1,job interview,rejected,,Employment experience bias
+B1-C07,B1,medical visit,rejected,,Sensitive personal domain
+B1-C08,B1,news summary,rejected,,Tests outside knowledge and recall
+B2-C01,B2,internship policy,selected,B2_INTERNSHIP_001,Access learning and counterargument
+B2-C02,B2,city transport,selected,B2_TRANSPORT_002,Public trade-off and accessibility
+B2-C03,B2,learning feedback,selected,B2_FEEDBACK_003,Budget reliability and safeguards
+B2-C04,B2,flexible attendance,selected,B2_TIE_FLEXIBILITY_001,Synthesis of fairness and flexibility
+B2-C05,B2,social media law,rejected,,Legal and political knowledge risk
+B2-C06,B2,climate tax,rejected,,Specialist policy vocabulary
+B2-C07,B2,university ranking,rejected,,Institutional context bias
+B2-C08,B2,medical AI,rejected,,Technical and sensitive domain

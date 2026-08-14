@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import threading
 
@@ -14,14 +15,22 @@ from livekit.agents import (
 )
 from livekit.agents.llm import ChatMessage
 
+from app.realtime.conversation_fluency import ConversationFluencyTracker
+from app.realtime.guided_conversation import run_guided_conversation_session
+from services.fluency.models import PracticeMode
+
 from ..config import get_settings
 from ..log_config import configure_logging
-from ..metadata import parse_job_metadata
+from ..metadata import (
+    PracticeJobMetadata,
+    SessionJobMetadata,
+    parse_tutor_job_metadata,
+)
 from ..persistence.serialization import sanitize_json
 from .persistence import JobPersistence
 from .pipeline import (
     TTS_TEXT_TRANSFORMS,
-    EnglishTutor,
+    FluencyTrackingTutor,
     build_audio_input_options,
     build_llm,
     build_stt,
@@ -46,9 +55,6 @@ async def on_session_end(ctx: agents.JobContext) -> None:
 
     try:
         if session is None:
-            # Startup can fail after the database row is created but before an
-            # AgentSession exists. There is no LiveKit report to build in that
-            # case; fail_before_session_end() has already marked the row failed.
             await persistence.flush()
             logger.info(
                 "session_report_unavailable",
@@ -57,8 +63,7 @@ async def on_session_end(ctx: agents.JobContext) -> None:
             return
 
         report = ctx.make_session_report(session)
-        history_items = list(session.history.items)
-        await persistence.finalize(report=report, history_items=history_items)
+        await persistence.finalize(report=report, history_items=list(session.history.items))
         logger.info(
             "session_persisted",
             extra={"session_id": str(persistence.metadata.session_id)},
@@ -83,37 +88,64 @@ server = AgentServer(
 
 @server.rtc_session(agent_name=settings.livekit_agent_name, on_session_end=on_session_end)
 async def english_tutor_session(ctx: agents.JobContext) -> None:
-    settings.require_agent_environment()
-    metadata = parse_job_metadata(
+    metadata = parse_tutor_job_metadata(
         getattr(ctx.job, "metadata", ""),
         production=settings.is_production,
     )
+    is_main_session = isinstance(metadata, SessionJobMetadata)
+    settings.require_agent_environment(include_database=is_main_session)
 
-    job_id = getattr(ctx.job, "id", None)
-    job_room = getattr(ctx.job, "room", None)
-    room_sid = getattr(job_room, "sid", None)
-    persistence = JobPersistence(
-        settings.database_url.get_secret_value(),
-        metadata,
+    mode = (
+        PracticeMode(metadata.conversation_mode)
+        if isinstance(metadata, PracticeJobMetadata)
+        else PracticeMode.FREE
     )
-    await persistence.start(
-        job_id=job_id,
-        room_name=ctx.room.name,
-        room_sid=room_sid,
+    logger.info(
+        "session_starting",
+        extra={
+            "room": ctx.room.name,
+            "mode": mode.value,
+            "contract": "main" if is_main_session else "practice",
+            "worker_thread": threading.current_thread().name,
+        },
     )
-    ctx.proc.userdata[PERSISTENCE_KEY] = persistence
+
+    if mode == PracticeMode.GUIDED:
+        await run_guided_conversation_session(
+            ctx,
+            stt=build_stt(settings),
+            vad=build_vad(),
+            tts=build_tts(settings),
+            audio_input_options=build_audio_input_options(settings),
+            aec_warmup_duration=settings.aec_warmup_seconds,
+        )
+        return
+
+    persistence: JobPersistence | None = None
+    if isinstance(metadata, SessionJobMetadata):
+        job_room = getattr(ctx.job, "room", None)
+        persistence = JobPersistence(
+            settings.database_url.get_secret_value(),
+            metadata,
+        )
+        await persistence.start(
+            job_id=getattr(ctx.job, "id", None),
+            room_name=ctx.room.name,
+            room_sid=getattr(job_room, "sid", None),
+        )
+        ctx.proc.userdata[PERSISTENCE_KEY] = persistence
+
+    tracker_session_id = (
+        metadata.practice_session_id
+        if isinstance(metadata, PracticeJobMetadata)
+        else ctx.room.name
+    )
+    tracker = ConversationFluencyTracker(
+        session_id=tracker_session_id,
+        mode=PracticeMode.FREE,
+    )
 
     try:
-        logger.info(
-            "session_starting",
-            extra={
-                "session_id": str(metadata.session_id),
-                "subject_id": str(metadata.subject_id),
-                "room": ctx.room.name,
-                "worker_thread": threading.current_thread().name,
-            },
-        )
-
         session = AgentSession(
             stt=build_stt(settings),
             vad=build_vad(),
@@ -125,34 +157,66 @@ async def english_tutor_session(ctx: agents.JobContext) -> None:
             user_away_timeout=None,
         )
         ctx.proc.userdata[SESSION_KEY] = session
-        add_observability(session, persistence)
+        add_observability(session, persistence=persistence, tracker=tracker)
+
+        @session.on("user_state_changed")
+        def on_user_state_changed(event) -> None:
+            if str(event.new_state).lower().endswith("speaking"):
+                tracker.mark_user_speaking()
 
         await session.start(
             room=ctx.room,
-            agent=EnglishTutor(),
-            room_options=room_io.RoomOptions(audio_input=build_audio_input_options(settings)),
+            agent=FluencyTrackingTutor(tracker),
+            room_options=room_io.RoomOptions(
+                audio_input=build_audio_input_options(settings)
+            ),
         )
-        logger.info("session_ready", extra={"session_id": str(metadata.session_id)})
+        logger.info("session_ready", extra={"room": ctx.room.name, "mode": mode.value})
     except Exception as exc:
-        await persistence.fail_before_session_end(exc)
+        if persistence is not None:
+            await persistence.fail_before_session_end(exc)
         raise
 
 
-def add_observability(session: AgentSession, persistence: JobPersistence) -> None:
-    session_id = str(persistence.metadata.session_id)
+def add_observability(
+    session: AgentSession,
+    *,
+    persistence: JobPersistence | None,
+    tracker: ConversationFluencyTracker,
+) -> None:
+    session_id = (
+        str(persistence.metadata.session_id) if persistence is not None else tracker.session_id
+    )
 
     @session.on("conversation_item_added")
     def on_conversation_item_added(event: ConversationItemAddedEvent) -> None:
         item = event.item
         if not isinstance(item, ChatMessage):
             return
-        persistence.record_turn(item, occurred_at=event.created_at)
+
+        if persistence is not None:
+            persistence.record_turn(item, occurred_at=event.created_at)
+
+        role = getattr(item.role, "value", str(item.role))
+        if role == "user":
+            content = getattr(item, "text_content", "")
+            if callable(content):
+                content = content()
+            transcript = str(content or "").strip()
+            if transcript:
+                turn_id = str(
+                    getattr(item, "id", None)
+                    or getattr(item, "item_id", None)
+                    or f"turn-{threading.get_ident()}-{id(item)}"
+                )
+                asyncio.create_task(tracker.submit_turn(transcript, turn_id))
+
         logger.info(
             "conversation_turn",
             extra={
                 "session_id": session_id,
                 "item_id": item.id,
-                "role": getattr(item.role, "value", str(item.role)),
+                "role": role,
                 "interrupted": bool(item.interrupted),
                 "metrics": sanitize_json(getattr(item, "metrics", {}) or {}),
             },
@@ -160,11 +224,12 @@ def add_observability(session: AgentSession, persistence: JobPersistence) -> Non
 
     @session.on("agent_state_changed")
     def on_agent_state_changed(event: AgentStateChangedEvent) -> None:
-        persistence.record_event(
-            "agent_state_changed",
-            {"old_state": event.old_state, "new_state": event.new_state},
-            occurred_at=event.created_at,
-        )
+        if persistence is not None:
+            persistence.record_event(
+                "agent_state_changed",
+                {"old_state": event.old_state, "new_state": event.new_state},
+                occurred_at=event.created_at,
+            )
         logger.info(
             "agent_state_changed",
             extra={
@@ -179,12 +244,13 @@ def add_observability(session: AgentSession, persistence: JobPersistence) -> Non
         recoverable = bool(
             getattr(event, "recoverable", getattr(event.error, "recoverable", False))
         )
-        persistence.record_error(
-            error=event.error,
-            source=event.source,
-            recoverable=recoverable,
-            occurred_at=event.created_at,
-        )
+        if persistence is not None:
+            persistence.record_error(
+                error=event.error,
+                source=event.source,
+                recoverable=recoverable,
+                occurred_at=event.created_at,
+            )
         logger.error(
             "session_error",
             extra={

@@ -7,7 +7,13 @@ import pytest
 from pydantic import ValidationError
 
 from conversation_ai.config import Settings
-from conversation_ai.metadata import JobMetadataError, parse_job_metadata
+from conversation_ai.metadata import (
+    JobMetadataError,
+    PracticeJobMetadata,
+    SessionJobMetadata,
+    parse_job_metadata,
+    parse_tutor_job_metadata,
+)
 from conversation_ai.persistence.database import normalize_database_url
 
 
@@ -53,8 +59,61 @@ def test_dispatch_metadata_is_strict_and_versioned() -> None:
         parse_job_metadata(json.dumps(payload), production=True)
 
 
+def test_tutor_accepts_main_and_practice_metadata_contracts() -> None:
+    main = parse_tutor_job_metadata(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "session_id": str(uuid.uuid4()),
+                "subject_id": str(uuid.uuid4()),
+                "locale": "en",
+            }
+        ),
+        production=True,
+    )
+    assert isinstance(main, SessionJobMetadata)
+
+    practice = parse_tutor_job_metadata(
+        json.dumps(
+            {
+                "conversation_mode": "guided",
+                "practice_session_id": "guided-123",
+                "user_id": "learner-123",
+                "guided_session_id": "guided-123",
+            }
+        ),
+        production=True,
+    )
+    assert isinstance(practice, PracticeJobMetadata)
+    assert practice.conversation_mode == "guided"
+
+
+def test_tutor_rejects_removed_or_incomplete_practice_modes() -> None:
+    for payload in (
+        {
+            "conversation_mode": "scripted",
+            "practice_session_id": "scripted-123",
+            "user_id": "learner-123",
+        },
+        {
+            "conversation_mode": "guided",
+            "practice_session_id": "guided-123",
+            "user_id": "learner-123",
+        },
+    ):
+        with pytest.raises(JobMetadataError, match="Invalid dispatch metadata"):
+            parse_tutor_job_metadata(json.dumps(payload), production=True)
+
+
 def test_agent_environment_lists_missing_values_without_secrets() -> None:
-    settings = Settings(_env_file=None)
+    settings = Settings(
+        _env_file=None,
+        livekit_url="",
+        livekit_api_key="",
+        livekit_api_secret="",
+        deepgram_api_key="",
+        database_url="",
+    )
     with pytest.raises(RuntimeError) as error:
         settings.require_agent_environment()
     message = str(error.value)

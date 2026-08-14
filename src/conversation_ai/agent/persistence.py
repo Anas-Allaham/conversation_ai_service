@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from livekit.agents.llm import ChatMessage
@@ -16,7 +16,7 @@ logger = logging.getLogger("conversation-ai.persistence")
 
 
 def timestamp(value: float | int | None = None) -> datetime:
-    return datetime.fromtimestamp(float(value or time.time()), tz=UTC)
+    return datetime.fromtimestamp(float(value or time.time()), tz=timezone.utc)
 
 
 class JobPersistence:
@@ -161,7 +161,7 @@ class JobPersistence:
         await self.repository.finalize_session(
             self.metadata.session_id,
             status="failed" if self._unrecoverable_error else "completed",
-            ended_at=datetime.now(UTC),
+            ended_at=datetime.now(timezone.utc),
             final_report=final_report,
             model_usage=model_usage,
             error_type=error_type,

@@ -40,10 +40,11 @@ class LiveKitConversationGateway:
 
     def __init__(self, settings: Settings) -> None:
         settings.require_conversation_start_environment()
-        self._url = settings.livekit_url
-        self._api_key = settings.livekit_api_key.get_secret_value()
-        self._api_secret = settings.livekit_api_secret.get_secret_value()
-        self._agent_name = settings.livekit_agent_name.strip()
+        livekit = settings.livekit
+        self._url = livekit.url
+        self._api_key = livekit.api_key
+        self._api_secret = livekit.api_secret
+        self._agent_name = livekit.agent_name
 
     async def ensure_dispatch(
         self,

@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import AsyncIterable
+from typing import Any
 
 from livekit.agents import Agent, TurnHandlingOptions, inference, room_io
 from livekit.plugins import ai_coustics, deepgram, silero
 
-from ..config import Settings
+from app.realtime.conversation_fluency import ConversationFluencyTracker
+
+from ..config import Settings, get_settings
 
 logger = logging.getLogger("conversation-ai.pipeline")
 TTS_TEXT_TRANSFORMS = ["filter_markdown", "filter_emoji"]
@@ -44,7 +48,21 @@ class EnglishTutor(Agent):
         super().__init__(instructions=TUTOR_INSTRUCTIONS)
 
 
-def build_stt(settings: Settings) -> deepgram.STTv2:
+class FluencyTrackingTutor(EnglishTutor):
+    """Keep the canonical tutor behavior while capturing Flux timing evidence."""
+
+    def __init__(self, tracker: ConversationFluencyTracker) -> None:
+        super().__init__()
+        self.tracker = tracker
+
+    async def stt_node(self, audio, model_settings) -> AsyncIterable[Any]:
+        async for event in Agent.default.stt_node(self, audio, model_settings):
+            self.tracker.observe_stt_event(event)
+            yield event
+
+
+def build_stt(settings: Settings | None = None) -> deepgram.STTv2:
+    settings = settings or get_settings()
     return deepgram.STTv2(
         model="flux-general-en",
         eager_eot_threshold=settings.flux_eager_eot_threshold,
@@ -62,7 +80,8 @@ def build_vad():
     )
 
 
-def build_llm(settings: Settings) -> inference.LLM:
+def build_llm(settings: Settings | None = None) -> inference.LLM:
+    settings = settings or get_settings()
     logger.info("llm_configured", extra={"model": settings.livekit_llm_model})
     return inference.LLM(
         model=settings.livekit_llm_model,
@@ -73,7 +92,8 @@ def build_llm(settings: Settings) -> inference.LLM:
     )
 
 
-def build_tts(settings: Settings) -> deepgram.TTS:
+def build_tts(settings: Settings | None = None) -> deepgram.TTS:
+    settings = settings or get_settings()
     logger.info("tts_configured", extra={"model": settings.deepgram_tts_model})
     return deepgram.TTS(model=settings.deepgram_tts_model, sample_rate=24_000)
 
@@ -99,10 +119,13 @@ def build_turn_handling_options() -> TurnHandlingOptions:
     )
 
 
-def build_audio_input_options(settings: Settings) -> room_io.AudioInputOptions:
+def build_audio_input_options(settings: Settings | None = None) -> room_io.AudioInputOptions:
+    settings = settings or get_settings()
     if settings.audio_enhancement == "none":
         logger.info("audio_enhancement_disabled")
         return room_io.AudioInputOptions()
+    if settings.audio_enhancement != "quail_l":
+        raise RuntimeError("AUDIO_ENHANCEMENT must be 'quail_l' or 'none'")
 
     kwargs: dict[str, object] = {"model": ai_coustics.EnhancerModel.QUAIL_L}
     if settings.audio_enhancement_level is not None:

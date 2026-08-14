@@ -1,0 +1,11 @@
+{
+  "content_version": "guided-content-v2",
+  "domains": [
+    {
+      "id": "restaurant",
+      "title": "Restaurant",
+      "description": "Practice ordering, paying, and resolving common problems in restaurants and cafes.",
+      "order": 1
+    }
+  ]
+}

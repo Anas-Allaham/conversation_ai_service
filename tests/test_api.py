@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import httpx
 
@@ -167,7 +167,7 @@ async def test_session_queries_pagination_and_cascade_delete(database) -> None:
             text=f"turn {sequence}",
             interrupted=False,
             metrics={},
-            occurred_at=datetime.now(UTC),
+            occurred_at=datetime.now(timezone.utc),
         )
 
     client, lifespan = await make_client(database)
@@ -202,7 +202,7 @@ async def test_session_queries_pagination_and_cascade_delete(database) -> None:
 
 async def test_subject_session_cursor(database) -> None:
     subject_id = uuid.uuid4()
-    base = datetime.now(UTC)
+    base = datetime.now(timezone.utc)
     for offset in range(3):
         await seed_session(
             database,

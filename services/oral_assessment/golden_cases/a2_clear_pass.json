@@ -1,0 +1,1 @@
+{"case_id":"a2-clear-pass","target_level":"A2","prompt_kind":"main","transcript":"Hello. I would like a large blue notebook, please. Could you tell me how much it costs?","expected":{"task_achievement":3,"interactive_communication":3,"meaning_blocked":false,"decision":"pass"},"note":"Original synthetic case; not a human validation sample."}

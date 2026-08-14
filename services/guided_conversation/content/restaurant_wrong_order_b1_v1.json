@@ -1,0 +1,109 @@
+{
+  "id": "restaurant.wrong_order.b1",
+  "version": 1,
+  "status": "published",
+  "domain_id": "restaurant",
+  "theme": "resolving_problems",
+  "title": "Resolving a Wrong Order",
+  "required_level": "B1",
+  "estimated_minutes": 5,
+  "learner_role": "customer",
+  "system_role": "restaurant server",
+  "objective": "Explain that an order is wrong and request a suitable replacement",
+  "situation": "The restaurant brought the wrong soup, and you need to explain the problem politely.",
+  "useful_vocabulary": ["ordered", "appears", "replace", "allergic", "alternative", "confirm"],
+  "target_functions": ["make a polite complaint", "explain a problem", "request a solution", "confirm an alternative"],
+  "target_phonemes": ["/θ/", "/ð/", "/v/", "/p/"],
+  "closing_display_text": "You're welcome. I hope everything is correct now.",
+  "closing_spoken_text": "You're welcome. I hope everything is correct now.",
+  "turns": [
+    {
+      "id": "turn_01",
+      "assistant_display_text": "Good evening. Is everything all right with your meal?",
+      "assistant_spoken_text": "Good evening. Is everything all right with your meal?",
+      "assistant_audio_asset": null,
+      "user_display_text": "I'm sorry, but I ordered the vegetable soup, not the chicken soup.",
+      "user_expected_text": "I'm sorry, but I ordered the vegetable soup, not the chicken soup.",
+      "arabic_hint": "اعتذر واشرح أن الطلب غير صحيح.",
+      "expected_pause_after_word_indexes": [2, 8],
+      "evaluation": {"pronunciation": true, "fluency": true, "target_words": ["vegetable", "soup", "chicken"]}
+    },
+    {
+      "id": "turn_02",
+      "assistant_display_text": "I apologize. Would you like me to replace it?",
+      "assistant_spoken_text": "I apologize. Would you like me to replace it?",
+      "assistant_audio_asset": null,
+      "user_display_text": "Yes, please replace it because I cannot eat chicken.",
+      "user_expected_text": "Yes, please replace it because I cannot eat chicken.",
+      "arabic_hint": "اطلب استبدال الطبق واشرح السبب.",
+      "expected_pause_after_word_indexes": [1],
+      "evaluation": {"pronunciation": true, "fluency": true, "target_words": ["please", "replace", "because"]}
+    },
+    {
+      "id": "turn_03",
+      "assistant_display_text": "Of course. Are you allergic to chicken?",
+      "assistant_spoken_text": "Of course. Are you allergic to chicken?",
+      "assistant_audio_asset": null,
+      "user_display_text": "No, I am not allergic, but I prefer vegetarian food.",
+      "user_expected_text": "No, I am not allergic, but I prefer vegetarian food.",
+      "arabic_hint": "وضّح أنك تفضّل الطعام النباتي.",
+      "expected_pause_after_word_indexes": [1, 5],
+      "evaluation": {"pronunciation": true, "fluency": true, "target_words": ["allergic", "prefer", "vegetarian"]}
+    },
+    {
+      "id": "turn_04",
+      "assistant_display_text": "The vegetable soup will take about ten minutes. Is that acceptable?",
+      "assistant_spoken_text": "The vegetable soup will take about ten minutes. Is that acceptable?",
+      "assistant_audio_asset": null,
+      "user_display_text": "That is fine, but could you bring the salad first?",
+      "user_expected_text": "That is fine, but could you bring the salad first?",
+      "arabic_hint": "وافق واطلب إحضار السلطة أولاً.",
+      "expected_pause_after_word_indexes": [3],
+      "evaluation": {"pronunciation": true, "fluency": true, "target_words": ["fine", "bring", "first"]}
+    },
+    {
+      "id": "turn_05",
+      "assistant_display_text": "Certainly. Would you like the same drink while you wait?",
+      "assistant_spoken_text": "Certainly. Would you like the same drink while you wait?",
+      "assistant_audio_asset": null,
+      "user_display_text": "Yes, thank you. Another bottle of water would be perfect.",
+      "user_expected_text": "Yes, thank you. Another bottle of water would be perfect.",
+      "arabic_hint": "اطلب زجاجة ماء أخرى.",
+      "expected_pause_after_word_indexes": [3],
+      "evaluation": {"pronunciation": true, "fluency": true, "target_words": ["another", "water", "perfect"]}
+    },
+    {
+      "id": "turn_06",
+      "assistant_display_text": "I will remove the chicken soup from your bill.",
+      "assistant_spoken_text": "I will remove the chicken soup from your bill.",
+      "assistant_audio_asset": null,
+      "user_display_text": "Thank you for solving the problem so quickly.",
+      "user_expected_text": "Thank you for solving the problem so quickly.",
+      "arabic_hint": "اشكر الموظف على حل المشكلة بسرعة.",
+      "expected_pause_after_word_indexes": [],
+      "evaluation": {"pronunciation": true, "fluency": true, "target_words": ["thank", "problem", "quickly"]}
+    },
+    {
+      "id": "turn_07",
+      "assistant_display_text": "Your replacement is ready. May I bring it now?",
+      "assistant_spoken_text": "Your replacement is ready. May I bring it now?",
+      "assistant_audio_asset": null,
+      "user_display_text": "Yes, please bring it now, and could I have some bread?",
+      "user_expected_text": "Yes, please bring it now, and could I have some bread?",
+      "arabic_hint": "اطلب الطبق الآن وبعض الخبز.",
+      "expected_pause_after_word_indexes": [1, 5],
+      "evaluation": {"pronunciation": true, "fluency": true, "target_words": ["please", "bring", "bread"]}
+    },
+    {
+      "id": "turn_08",
+      "assistant_display_text": "Certainly. Is there anything else I can help you with?",
+      "assistant_spoken_text": "Certainly. Is there anything else I can help you with?",
+      "assistant_audio_asset": null,
+      "user_display_text": "No, that is everything. Thank you for your help.",
+      "user_expected_text": "No, that is everything. Thank you for your help.",
+      "arabic_hint": "قل إنك لا تحتاج شيئاً آخر واشكر الموظف.",
+      "expected_pause_after_word_indexes": [4],
+      "evaluation": {"pronunciation": true, "fluency": true, "target_words": ["everything", "thank"]}
+    }
+  ]
+}

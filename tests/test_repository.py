@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import func, select
 
@@ -28,7 +28,7 @@ async def test_repository_persists_and_hard_deletes_full_subject(database) -> No
             job_id=f"job-{offset}",
             room_name=f"room-{offset}",
             room_sid=f"sid-{offset}",
-            started_at=datetime.now(UTC) + timedelta(seconds=offset),
+            started_at=datetime.now(timezone.utc) + timedelta(seconds=offset),
         )
 
     await repo.upsert_turn(
@@ -39,14 +39,14 @@ async def test_repository_persists_and_hard_deletes_full_subject(database) -> No
         text="Hello",
         interrupted=False,
         metrics={"transcription_delay": 0.2},
-        occurred_at=datetime.now(UTC),
+        occurred_at=datetime.now(timezone.utc),
     )
     await repo.append_event(
         session_id=first_id,
         sequence=1,
         event_type="agent_state_changed",
         payload={"old_state": "listening", "new_state": "thinking"},
-        occurred_at=datetime.now(UTC),
+        occurred_at=datetime.now(timezone.utc),
     )
 
     sessions = await repo.list_subject_sessions(
@@ -80,7 +80,7 @@ async def test_turn_upsert_reconciles_final_metrics(database) -> None:
         "role": "assistant",
         "text": "Response",
         "interrupted": False,
-        "occurred_at": datetime.now(UTC),
+        "occurred_at": datetime.now(timezone.utc),
     }
     await repo.upsert_turn(**common, metrics={"llm_node_ttft": 0.4})
     await repo.upsert_turn(**common, metrics={"llm_node_ttft": 0.2, "tts_node_ttfb": 0.1})

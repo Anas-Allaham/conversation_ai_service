@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import and_, delete, or_, select
@@ -50,7 +50,7 @@ class SessionRepository:
                     room_name=room_name,
                     status="active",
                     dispatch_metadata=metadata.model_dump(mode="json", exclude_none=True),
-                    started_at=started_at or datetime.now(UTC),
+                    started_at=started_at or datetime.now(timezone.utc),
                 )
                 session.add(row)
             elif self._matches(row, metadata, room_name) and row.status == "starting":
@@ -59,7 +59,7 @@ class SessionRepository:
                 row.livekit_job_id = job_id
                 row.livekit_room_sid = room_sid or row.livekit_room_sid
                 row.status = "active"
-                row.started_at = started_at or datetime.now(UTC)
+                row.started_at = started_at or datetime.now(timezone.utc)
                 row.error_type = None
                 row.error_message = None
             elif self._matches(row, metadata, room_name) and row.livekit_job_id == job_id:
@@ -84,7 +84,7 @@ class SessionRepository:
             room_name=room_name,
             status="starting",
             dispatch_metadata=metadata.model_dump(mode="json", exclude_none=True),
-            started_at=datetime.now(UTC),
+            started_at=datetime.now(timezone.utc),
         )
         async with self._session_factory() as session:
             existing = await session.get(ConversationSession, metadata.session_id)
