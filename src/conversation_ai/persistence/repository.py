@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import and_, delete, or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from ..metadata import SessionJobMetadata
@@ -28,25 +31,102 @@ class SessionRepository:
         room_sid: str | None,
         started_at: datetime | None = None,
     ) -> ConversationSession:
+        async with self._session_factory() as session:
+            result = await session.execute(
+                select(ConversationSession)
+                .where(ConversationSession.session_id == metadata.session_id)
+                .with_for_update()
+            )
+            row = result.scalar_one_or_none()
+            if row is None:
+                row = ConversationSession(
+                    session_id=metadata.session_id,
+                    subject_id=metadata.subject_id,
+                    schema_version=metadata.schema_version,
+                    lesson_id=metadata.lesson_id,
+                    locale=metadata.locale,
+                    livekit_job_id=job_id,
+                    livekit_room_sid=room_sid,
+                    room_name=room_name,
+                    status="active",
+                    dispatch_metadata=metadata.model_dump(mode="json", exclude_none=True),
+                    started_at=started_at or datetime.now(UTC),
+                )
+                session.add(row)
+            elif self._matches(row, metadata, room_name) and row.status == "starting":
+                # The start API reserves the row before dispatch. The worker
+                # claims that reservation when LiveKit assigns the job.
+                row.livekit_job_id = job_id
+                row.livekit_room_sid = room_sid or row.livekit_room_sid
+                row.status = "active"
+                row.started_at = started_at or datetime.now(UTC)
+                row.error_type = None
+                row.error_message = None
+            elif self._matches(row, metadata, room_name) and row.livekit_job_id == job_id:
+                return row
+            else:
+                raise SessionAlreadyExistsError(f"Session {metadata.session_id} already exists")
+            await session.commit()
+            return row
+
+    async def reserve_session(
+        self,
+        metadata: SessionJobMetadata,
+        *,
+        room_name: str,
+    ) -> ConversationSession:
         row = ConversationSession(
             session_id=metadata.session_id,
             subject_id=metadata.subject_id,
             schema_version=metadata.schema_version,
             lesson_id=metadata.lesson_id,
             locale=metadata.locale,
-            livekit_job_id=job_id,
-            livekit_room_sid=room_sid,
             room_name=room_name,
-            status="active",
+            status="starting",
             dispatch_metadata=metadata.model_dump(mode="json", exclude_none=True),
-            started_at=started_at or datetime.now(UTC),
+            started_at=datetime.now(UTC),
         )
         async with self._session_factory() as session:
-            if await session.get(ConversationSession, metadata.session_id):
-                raise SessionAlreadyExistsError(f"Session {metadata.session_id} already exists")
+            existing = await session.get(ConversationSession, metadata.session_id)
+            if existing is not None:
+                return existing
             session.add(row)
-            await session.commit()
-            return row
+            try:
+                await session.commit()
+                return row
+            except IntegrityError:
+                # Another API replica may have won the idempotency-key race.
+                await session.rollback()
+                existing = await session.get(ConversationSession, metadata.session_id)
+                if existing is None:
+                    raise
+                return existing
+
+    @asynccontextmanager
+    async def lock_session(self, session_id: uuid.UUID) -> AsyncIterator[ConversationSession]:
+        async with self._session_factory() as session:
+            async with session.begin():
+                result = await session.execute(
+                    select(ConversationSession)
+                    .where(ConversationSession.session_id == session_id)
+                    .with_for_update()
+                )
+                row = result.scalar_one()
+                yield row
+
+    @staticmethod
+    def _matches(
+        row: ConversationSession,
+        metadata: SessionJobMetadata,
+        room_name: str,
+    ) -> bool:
+        return (
+            row.subject_id == metadata.subject_id
+            and row.schema_version == metadata.schema_version
+            and row.lesson_id == metadata.lesson_id
+            and row.locale == metadata.locale
+            and row.room_name == room_name
+        )
 
     async def upsert_turn(
         self,
@@ -235,4 +315,3 @@ class SessionRepository:
             )
             await session.commit()
             return int(result.rowcount or 0)
-

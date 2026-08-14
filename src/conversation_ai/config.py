@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     livekit_url: str = ""
     livekit_api_key: SecretStr = SecretStr("")
     livekit_api_secret: SecretStr = SecretStr("")
+    livekit_agent_name: str = "english-tutor"
     deepgram_api_key: SecretStr = SecretStr("")
     database_url: SecretStr = SecretStr("")
     service_api_key: SecretStr = SecretStr("")
@@ -78,6 +79,28 @@ class Settings(BaseSettings):
     def api_auth_configured(self) -> bool:
         return bool(self.service_api_key.get_secret_value())
 
+    @property
+    def conversation_start_configured(self) -> bool:
+        return all(
+            (
+                self.livekit_url,
+                self.livekit_api_key.get_secret_value(),
+                self.livekit_api_secret.get_secret_value(),
+                self.livekit_agent_name.strip(),
+            )
+        )
+
+    def require_conversation_start_environment(self) -> None:
+        required = {
+            "LIVEKIT_URL": self.livekit_url,
+            "LIVEKIT_API_KEY": self.livekit_api_key.get_secret_value(),
+            "LIVEKIT_API_SECRET": self.livekit_api_secret.get_secret_value(),
+            "LIVEKIT_AGENT_NAME": self.livekit_agent_name.strip(),
+        }
+        missing = [name for name, value in required.items() if not value]
+        if missing:
+            raise RuntimeError("Missing required environment values: " + ", ".join(missing))
+
     def require_agent_environment(self) -> None:
         required = {
             "LIVEKIT_URL": self.livekit_url,
@@ -94,4 +117,3 @@ class Settings(BaseSettings):
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     return Settings()
-

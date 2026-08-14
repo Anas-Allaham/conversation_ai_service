@@ -394,6 +394,7 @@ source = { editable = "." }
 dependencies = [
     { name = "alembic" },
     { name = "asyncpg" },
+    { name = "livekit-api" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "python-dotenv" },
@@ -431,6 +432,7 @@ requires-dist = [
     { name = "fastapi", marker = "extra == 'api'", specifier = ">=0.116,<1" },
     { name = "fastapi", marker = "extra == 'modal'", specifier = ">=0.116,<1" },
     { name = "livekit-agents", extras = ["deepgram", "silero"], marker = "extra == 'agent'", specifier = ">=1.6.5,<1.7.0" },
+    { name = "livekit-api", specifier = ">=1.2,<2" },
     { name = "livekit-plugins-ai-coustics", marker = "extra == 'agent'", specifier = "==0.3.0" },
     { name = "modal", marker = "extra == 'modal'", specifier = ">=1.1,<2" },
     { name = "pydantic", specifier = ">=2.11,<3" },

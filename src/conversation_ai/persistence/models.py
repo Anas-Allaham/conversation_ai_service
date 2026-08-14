@@ -37,6 +37,7 @@ class ConversationSession(Base):
     locale: Mapped[str] = mapped_column(String(16), nullable=False, default="en")
 
     livekit_job_id: Mapped[str | None] = mapped_column(String(128), unique=True)
+    livekit_dispatch_id: Mapped[str | None] = mapped_column(String(128), unique=True)
     livekit_room_sid: Mapped[str | None] = mapped_column(String(128))
     room_name: Mapped[str] = mapped_column(String(255), nullable=False)
     status: Mapped[str] = mapped_column(String(24), nullable=False, default="starting")
@@ -137,4 +138,3 @@ class SessionEvent(Base):
         UniqueConstraint("session_id", "sequence", name="uq_session_event_sequence"),
         Index("ix_session_events_session_sequence", "session_id", "sequence"),
     )
-

@@ -14,6 +14,7 @@ def session_data(row: ConversationSession) -> dict[str, Any]:
         "lesson_id": row.lesson_id,
         "locale": row.locale,
         "livekit_job_id": row.livekit_job_id,
+        "livekit_dispatch_id": row.livekit_dispatch_id,
         "livekit_room_sid": row.livekit_room_sid,
         "room_name": row.room_name,
         "status": row.status,
@@ -58,4 +59,3 @@ def event_data(row: SessionEvent) -> dict[str, Any]:
         "payload": sanitize_json(row.payload),
         "occurred_at": row.occurred_at.isoformat(),
     }
-

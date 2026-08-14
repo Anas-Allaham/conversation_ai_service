@@ -11,6 +11,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from ..config import API_VERSION, SERVICE_NAME, Settings, get_settings
 from ..log_config import configure_logging
+from ..orchestration import LiveKitConversationGateway
 from ..persistence import Database
 from .envelopes import REQUEST_ID_HEADER, error, success
 from .errors import ServiceError
@@ -23,6 +24,7 @@ def create_app(
     *,
     settings_override: Settings | None = None,
     database_override: Database | None = None,
+    livekit_gateway_override: LiveKitConversationGateway | None = None,
 ) -> FastAPI:
     runtime_settings = settings_override or get_settings()
     configure_logging(runtime_settings.log_level)
@@ -46,12 +48,13 @@ def create_app(
         version=API_VERSION,
         description=(
             "Internal, subject-scoped access to persisted realtime English-tutor sessions. "
-            "Sessions are created through LiveKit dispatch, never through this API."
+            "The API owns LiveKit room creation, agent dispatch, and session queries."
         ),
         lifespan=lifespan,
     )
     app.state.settings = runtime_settings
     app.state.database = database_override
+    app.state.livekit_gateway = livekit_gateway_override
 
     @app.middleware("http")
     async def request_identifier(request: Request, call_next):
@@ -76,13 +79,20 @@ def create_app(
     @app.get("/health/ready")
     async def health_ready(request: Request):
         database = request.app.state.database
-        if database is None or not runtime_settings.api_auth_configured:
+        if (
+            database is None
+            or not runtime_settings.api_auth_configured
+            or not runtime_settings.conversation_start_configured
+        ):
             return JSONResponse(
                 status_code=503,
                 content=error(
                     request,
                     code="not_ready",
-                    message="Database or service authentication is not configured.",
+                    message=(
+                        "Database, service authentication, or LiveKit orchestration "
+                        "is not configured."
+                    ),
                 ),
             )
         try:
@@ -158,4 +168,3 @@ def register_error_handlers(app: FastAPI) -> None:
 
 
 app = create_app()
-

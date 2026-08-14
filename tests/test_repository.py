@@ -89,3 +89,25 @@ async def test_turn_upsert_reconciles_final_metrics(database) -> None:
     assert len(rows) == 1
     assert rows[0].metrics["tts_node_ttfb"] == 0.1
 
+
+async def test_worker_claims_session_reserved_by_start_api(database) -> None:
+    repo = SessionRepository(database.session_factory)
+    metadata = SessionJobMetadata(
+        schema_version=1,
+        session_id=uuid.uuid4(),
+        subject_id=uuid.uuid4(),
+    )
+    room_name = f"conversation-{metadata.session_id}"
+
+    reserved = await repo.reserve_session(metadata, room_name=room_name)
+    assert reserved.status == "starting"
+
+    active = await repo.create_session(
+        metadata,
+        job_id="job-from-livekit",
+        room_name=room_name,
+        room_sid="RM_1",
+    )
+    assert active.status == "active"
+    assert active.livekit_job_id == "job-from-livekit"
+    assert active.livekit_room_sid == "RM_1"

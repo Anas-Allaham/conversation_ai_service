@@ -81,7 +81,7 @@ server = AgentServer(
 )
 
 
-@server.rtc_session(agent_name="english-tutor", on_session_end=on_session_end)
+@server.rtc_session(agent_name=settings.livekit_agent_name, on_session_end=on_session_end)
 async def english_tutor_session(ctx: agents.JobContext) -> None:
     settings.require_agent_environment()
     metadata = parse_job_metadata(
@@ -130,9 +130,7 @@ async def english_tutor_session(ctx: agents.JobContext) -> None:
         await session.start(
             room=ctx.room,
             agent=EnglishTutor(),
-            room_options=room_io.RoomOptions(
-                audio_input=build_audio_input_options(settings)
-            ),
+            room_options=room_io.RoomOptions(audio_input=build_audio_input_options(settings)),
         )
         logger.info("session_ready", extra={"session_id": str(metadata.session_id)})
     except Exception as exc:

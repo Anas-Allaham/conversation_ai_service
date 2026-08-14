@@ -48,3 +48,12 @@ class InvalidCursorError(ServiceError):
     status_code = 422
     code = "invalid_cursor"
 
+
+class ConflictError(ServiceError):
+    status_code = 409
+    code = "conflict"
+
+
+class UpstreamServiceError(ServiceError):
+    status_code = 503
+    code = "upstream_service_error"

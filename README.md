@@ -5,8 +5,8 @@ Realtime English-tutor infrastructure with two deployable processes:
 - `src/agent.py`: a named LiveKit worker (`english-tutor`) that owns continuous
   Deepgram Flux STT, LiveKit Inference LLM, Deepgram streaming TTS, QUAIL-L
   enhancement, turn detection, and barge-in.
-- `conversation_ai.api.main`: an authenticated FastAPI service for the core to
-  query and permanently delete persisted sessions.
+- `conversation_ai.api.main`: an authenticated FastAPI service that creates
+  rooms, dispatches the agent, signs join tokens, and exposes persisted sessions.
 
 Both processes use the same AI-owned PostgreSQL database. The Django core owns
 users and PII; this service sees only opaque UUIDs. Raw audio is never recorded
@@ -17,20 +17,18 @@ or persisted.
 ```text
 Browser/mobile -- WebRTC --> LiveKit Cloud <--> English tutor worker
                                  ^                    |
-                                 | dispatch           | SQL
-                                 | metadata           v
-                            Django core          PostgreSQL
-                                 |                    ^
-                                 +---- HTTPS API -----+
-                                      (Modal)
+                                 | room/dispatch      | SQL
+                                 |                    v
+Django core -- HTTPS --> Conversation API ------> PostgreSQL
 ```
 
-The core starts conversations through LiveKit explicit dispatch, not through an
-AI-service REST endpoint. The query API is read/delete only.
+The core starts conversations through the authenticated REST API. This service
+holds the LiveKit credentials and owns deterministic room creation, exactly-once
+explicit dispatch, and participant-token signing.
 
 ## Job metadata contract
 
-Production dispatches must include strict JSON metadata:
+The start API creates strict LiveKit dispatch metadata:
 
 ```json
 {
@@ -42,8 +40,8 @@ Production dispatches must include strict JSON metadata:
 }
 ```
 
-Unknown fields and unsupported schema versions are rejected. Console mode can
-run without metadata and generates anonymous temporary UUIDs.
+Unknown fields and unsupported schema versions are rejected by the worker.
+Console mode can run without metadata and generates anonymous temporary UUIDs.
 
 ## Local setup
 
@@ -86,12 +84,25 @@ are `/health/live` and `/health/ready`; all `/api/v1` routes require
 
 ```text
 GET    /api/v1/capabilities
+POST   /api/v1/sessions/start
 GET    /api/v1/sessions/{session_id}
 GET    /api/v1/sessions/{session_id}/turns
 GET    /api/v1/sessions/{session_id}/events
 GET    /api/v1/subjects/{subject_id}/sessions
 DELETE /api/v1/sessions/{session_id}
 DELETE /api/v1/subjects/{subject_id}
+```
+
+Start requests use a caller-generated UUID as the idempotency key. The core
+must reuse that UUID when retrying:
+
+```json
+{
+  "session_id": "89f3b7f5-8c67-46b2-80a8-3937491b47db",
+  "subject_id": "43a4c3a9-758f-4760-a80d-7c5451344fa9",
+  "lesson_id": "optional-core-lesson-id",
+  "locale": "en"
+}
 ```
 
 List endpoints use opaque cursor pagination with `cursor` and `limit` (default
@@ -108,7 +119,7 @@ uv run pytest
 Tests use temporary SQLite databases for fast contract coverage. CI additionally
 applies the Alembic migration to PostgreSQL before running the suite.
 
-## Deploy the query API to Modal
+## Deploy the orchestration/query API to Modal
 
 Create one managed PostgreSQL database reachable from both Modal and LiveKit
 Cloud, then configure the Modal secret:
@@ -117,7 +128,10 @@ Cloud, then configure the Modal secret:
 modal secret create conversation-ai-service-secrets `
   APP_ENV=production `
   DATABASE_URL="postgresql://..." `
-  SERVICE_API_KEY="replace-with-a-long-random-value"
+  SERVICE_API_KEY="replace-with-a-long-random-value" `
+  LIVEKIT_URL="wss://your-project.livekit.cloud" `
+  LIVEKIT_API_KEY="..." `
+  LIVEKIT_API_SECRET="..."
 
 modal run modal_app.py::migrate
 modal deploy modal_app.py

@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 
 class SessionJobMetadata(BaseModel):
-    """Strict contract supplied by the future core through LiveKit dispatch."""
+    """Strict contract supplied to the worker through LiveKit dispatch."""
 
     model_config = ConfigDict(extra="forbid")
 
