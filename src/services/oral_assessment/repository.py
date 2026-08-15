@@ -109,12 +109,17 @@ class SQLRepository:
         if not migrations:
             raise RepositoryError(f"No {backend} migrations were found")
         with self._lock, self._connection() as connection:
-            for migration in migrations:
-                schema = migration.read_text(encoding="utf-8")
-                if self._is_sqlite:
+            if self._is_sqlite:
+                for migration in migrations:
+                    schema = migration.read_text(encoding="utf-8")
                     connection.executescript(schema)
-                else:
-                    with connection:
+            else:
+                # A psycopg connection context closes the connection when it exits.
+                # Keep every migration in one context so later files do not attempt
+                # to reuse a connection closed by the first file.
+                with connection:
+                    for migration in migrations:
+                        schema = migration.read_text(encoding="utf-8")
                         for statement in (part.strip() for part in schema.split(";")):
                             if statement:
                                 connection.execute(statement)
