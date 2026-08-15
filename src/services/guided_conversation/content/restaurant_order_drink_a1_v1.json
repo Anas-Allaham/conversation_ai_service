@@ -1,0 +1,87 @@
+{
+  "id": "restaurant.order_drink.a1",
+  "version": 1,
+  "status": "published",
+  "domain_id": "restaurant",
+  "theme": "ordering_drinks",
+  "title": "Ordering a Drink and Snack",
+  "required_level": "A1",
+  "estimated_minutes": 3,
+  "learner_role": "customer",
+  "system_role": "cafe server",
+  "objective": "Order a drink and snack, then complete payment",
+  "situation": "You are visiting a cafe in the morning and ordering breakfast.",
+  "useful_vocabulary": ["tea", "hot", "sandwich", "card", "please"],
+  "target_functions": ["make a simple request", "choose an option", "complete payment"],
+  "target_phonemes": ["/p/", "/v/"],
+  "closing_display_text": "You're welcome. Have a nice day too!",
+  "closing_spoken_text": "You're welcome. Have a nice day too!",
+  "turns": [
+    {
+      "id": "turn_01",
+      "assistant_display_text": "Good morning. What would you like to drink?",
+      "assistant_spoken_text": "Good morning. What would you like to drink?",
+      "assistant_audio_asset": null,
+      "user_display_text": "I would like a cup of tea, please.",
+      "user_expected_text": "I would like a cup of tea, please.",
+      "arabic_hint": "اطلب كوباً من الشاي بأدب.",
+      "expected_pause_after_word_indexes": [7],
+      "evaluation": {"pronunciation": true, "fluency": true, "target_words": ["cup", "please"]}
+    },
+    {
+      "id": "turn_02",
+      "assistant_display_text": "Would you like it hot or iced?",
+      "assistant_spoken_text": "Would you like it hot or iced?",
+      "assistant_audio_asset": null,
+      "user_display_text": "Hot tea, please, with a little sugar.",
+      "user_expected_text": "Hot tea, please, with a little sugar.",
+      "arabic_hint": "اختر الشاي الساخن مع القليل من السكر.",
+      "expected_pause_after_word_indexes": [3],
+      "evaluation": {"pronunciation": true, "fluency": true, "target_words": ["please"]}
+    },
+    {
+      "id": "turn_03",
+      "assistant_display_text": "Would you like something to eat?",
+      "assistant_spoken_text": "Would you like something to eat?",
+      "assistant_audio_asset": null,
+      "user_display_text": "Yes, I would like a cheese sandwich.",
+      "user_expected_text": "Yes, I would like a cheese sandwich.",
+      "arabic_hint": "اطلب شطيرة جبنة.",
+      "expected_pause_after_word_indexes": [1],
+      "evaluation": {"pronunciation": true, "fluency": true, "target_words": ["cheese", "sandwich"]}
+    },
+    {
+      "id": "turn_04",
+      "assistant_display_text": "Would you like anything else?",
+      "assistant_spoken_text": "Would you like anything else?",
+      "assistant_audio_asset": null,
+      "user_display_text": "No, thank you. That is all for me.",
+      "user_expected_text": "No, thank you. That is all for me.",
+      "arabic_hint": "قل إن هذا كل شيء.",
+      "expected_pause_after_word_indexes": [3],
+      "evaluation": {"pronunciation": true, "fluency": true, "target_words": ["thank"]}
+    },
+    {
+      "id": "turn_05",
+      "assistant_display_text": "Your total is seven dollars. How would you like to pay?",
+      "assistant_spoken_text": "Your total is seven dollars. How would you like to pay?",
+      "assistant_audio_asset": null,
+      "user_display_text": "I would like to pay by card, please.",
+      "user_expected_text": "I would like to pay by card, please.",
+      "arabic_hint": "اختر الدفع بالبطاقة.",
+      "expected_pause_after_word_indexes": [7],
+      "evaluation": {"pronunciation": true, "fluency": true, "target_words": ["pay", "please"]}
+    },
+    {
+      "id": "turn_06",
+      "assistant_display_text": "Here is your order. Enjoy!",
+      "assistant_spoken_text": "Here is your order. Enjoy!",
+      "assistant_audio_asset": null,
+      "user_display_text": "Thank you very much. Have a nice day.",
+      "user_expected_text": "Thank you very much. Have a nice day.",
+      "arabic_hint": "اشكر الموظف وتمنَّ له يوماً سعيداً.",
+      "expected_pause_after_word_indexes": [4],
+      "evaluation": {"pronunciation": true, "fluency": true, "target_words": ["thank"]}
+    }
+  ]
+}
