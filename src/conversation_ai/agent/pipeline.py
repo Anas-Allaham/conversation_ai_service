@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import AsyncIterable
+from typing import Any
 
 from livekit.agents import Agent, TurnHandlingOptions, inference, room_io
 from livekit.plugins import ai_coustics, deepgram, silero
@@ -42,6 +44,19 @@ Speech-output rules:
 class EnglishTutor(Agent):
     def __init__(self) -> None:
         super().__init__(instructions=TUTOR_INSTRUCTIONS)
+
+
+class FluencyTrackingTutor(EnglishTutor):
+    """Keep the original tutor behavior while capturing Flux word timings."""
+
+    def __init__(self, tracker) -> None:
+        super().__init__()
+        self.tracker = tracker
+
+    async def stt_node(self, audio, model_settings) -> AsyncIterable[Any]:
+        async for event in Agent.default.stt_node(self, audio, model_settings):
+            self.tracker.observe_stt_event(event)
+            yield event
 
 
 def build_stt(settings: Settings) -> deepgram.STTv2:

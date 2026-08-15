@@ -81,6 +81,33 @@ class JobPersistence:
             )
         )
 
+    def record_text_turn(
+        self,
+        *,
+        item_id: str,
+        role: str,
+        text: str,
+        metrics: dict[str, Any] | None = None,
+        occurred_at: float | None = None,
+    ) -> None:
+        """Persist deterministic turns that are not represented by LiveKit ChatMessage."""
+
+        if role not in {"user", "assistant"}:
+            raise ValueError("role must be user or assistant")
+        self._turn_sequence += 1
+        self._schedule(
+            self.repository.upsert_turn(
+                session_id=self.metadata.session_id,
+                item_id=item_id,
+                sequence=self._turn_sequence,
+                role=role,
+                text=text,
+                interrupted=False,
+                metrics=sanitize_json(metrics or {}) or {},
+                occurred_at=timestamp(occurred_at),
+            )
+        )
+
     def record_event(
         self,
         event_type: str,
@@ -166,6 +193,20 @@ class JobPersistence:
             model_usage=model_usage,
             error_type=error_type,
             error_message=error_message,
+        )
+
+    async def finalize_external(self, final_report: dict[str, Any]) -> None:
+        """Finalize deterministic guided sessions that do not expose an AgentSession report."""
+
+        await self.flush()
+        await self.repository.finalize_session(
+            self.metadata.session_id,
+            status="failed" if self._unrecoverable_error else "completed",
+            ended_at=datetime.now(UTC),
+            final_report=sanitize_json(final_report) or {},
+            model_usage=None,
+            error_type=self._unrecoverable_error[0] if self._unrecoverable_error else None,
+            error_message=self._unrecoverable_error[1] if self._unrecoverable_error else None,
         )
 
     async def fail_before_session_end(self, error: Exception) -> None:

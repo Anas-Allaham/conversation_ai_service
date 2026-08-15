@@ -55,3 +55,39 @@ async def test_job_persistence_reconciles_report_without_audio_or_secrets(tmp_pa
     finally:
         await persistence.close()
 
+
+async def test_guided_text_turns_are_available_through_team_persistence(tmp_path) -> None:
+    database_url = f"sqlite+aiosqlite:///{(tmp_path / 'guided.db').as_posix()}"
+    metadata = SessionJobMetadata(
+        schema_version=1,
+        session_id=uuid.uuid4(),
+        subject_id=uuid.uuid4(),
+        conversation_mode="guided",
+        practice_session_id="guided-example",
+        guided_session_id="guided-example",
+    )
+    persistence = JobPersistence(database_url, metadata)
+    await persistence.database.create_schema_for_tests()
+    try:
+        await persistence.start(job_id="job-guided", room_name="guided-example", room_sid=None)
+        persistence.record_text_turn(
+            item_id="attempt-1:assistant",
+            role="assistant",
+            text="May I see your passport?",
+            metrics={"conversation_mode": "guided"},
+        )
+        persistence.record_text_turn(
+            item_id="attempt-1:user",
+            role="user",
+            text="Yes, here it is.",
+            metrics={"conversation_mode": "guided"},
+        )
+        await persistence.finalize_external({"result_status": "completed"})
+
+        turns = await persistence.repository.list_turns(metadata.session_id)
+        assert [(turn.role, turn.text) for turn in turns] == [
+            ("assistant", "May I see your passport?"),
+            ("user", "Yes, here it is."),
+        ]
+    finally:
+        await persistence.close()

@@ -17,6 +17,11 @@ runtime_image = (
         str(PROJECT_DIR / "pyproject.toml"),
         optional_dependencies=["api"],
     )
+    .run_commands(
+        f"mkdir -p {APP_DIR}/data/piper",
+        "python -m piper.download_voices "
+        f"--data-dir {APP_DIR}/data/piper en_US-lessac-medium",
+    )
     .add_local_dir(str(PROJECT_DIR / "src"), remote_path=f"{APP_DIR}/src", copy=True)
     .add_local_dir(
         str(PROJECT_DIR / "migrations"),
@@ -61,4 +66,3 @@ def web():
     from conversation_ai.api.main import app as fastapi_app
 
     return fastapi_app
-

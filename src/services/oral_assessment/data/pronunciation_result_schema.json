@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/assessment-pronunciation-result-v0.1.json",
+  "title": "Assessment pronunciation result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["event_type", "event_id", "occurred_at", "assessment_id", "response_id", "status", "diagnostic"],
+  "properties": {
+    "event_type": {"enum": ["assessment.pronunciation_completed", "assessment.pronunciation_failed"]},
+    "event_id": {"type": "string"},
+    "occurred_at": {"type": "string", "format": "date-time"},
+    "assessment_id": {"type": "string"},
+    "response_id": {"type": "string"},
+    "status": {"enum": ["completed", "failed"]},
+    "diagnostic": {
+      "type": "object",
+      "required": ["status", "impact_on_conversational_level"],
+      "properties": {
+        "status": {"type": "string"},
+        "phoneme_error_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "impact_on_conversational_level": {"const": "none"}
+      }
+    }
+  }
+}

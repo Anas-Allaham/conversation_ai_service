@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import asyncio
 import contextlib
 import logging
 import uuid
+from pathlib import Path
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -25,9 +29,15 @@ def create_app(
     settings_override: Settings | None = None,
     database_override: Database | None = None,
     livekit_gateway_override: LiveKitConversationGateway | None = None,
+    include_tutor: bool | None = None,
 ) -> FastAPI:
     runtime_settings = settings_override or get_settings()
     configure_logging(runtime_settings.log_level)
+    tutor_is_enabled = (
+        include_tutor
+        if include_tutor is not None
+        else runtime_settings.tutor_enabled and runtime_settings.app_env != "test"
+    )
 
     @contextlib.asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -38,6 +48,15 @@ def create_app(
             owned_database = True
         app.state.database = database
         try:
+            if tutor_is_enabled:
+                try:
+                    await asyncio.to_thread(app.state.initialize_tutor_modules)
+                    app.state.tutor_initialized = True
+                except Exception as exc:
+                    app.state.tutor_startup_error = f"{type(exc).__name__}: {exc}"
+                    logger.exception("tutor_module_initialization_failed")
+                    if runtime_settings.tutor_required:
+                        raise
             yield
         finally:
             if owned_database and database is not None:
@@ -55,6 +74,8 @@ def create_app(
     app.state.settings = runtime_settings
     app.state.database = database_override
     app.state.livekit_gateway = livekit_gateway_override
+    app.state.tutor_initialized = False
+    app.state.tutor_startup_error = None
 
     @app.middleware("http")
     async def request_identifier(request: Request, call_next):
@@ -95,6 +116,20 @@ def create_app(
                     ),
                 ),
             )
+        if tutor_is_enabled and runtime_settings.tutor_required:
+            tutor_errors = list(getattr(request.app.state, "tutor_readiness_errors", []))
+            if request.app.state.tutor_startup_error:
+                tutor_errors.append(request.app.state.tutor_startup_error)
+            if not request.app.state.tutor_initialized or tutor_errors:
+                return JSONResponse(
+                    status_code=503,
+                    content=error(
+                        request,
+                        code="tutor_not_ready",
+                        message="The integrated tutor modules are not ready.",
+                        details={"errors": tutor_errors},
+                    ),
+                )
         try:
             await database.ping()
         except Exception:
@@ -110,6 +145,13 @@ def create_app(
         return success(request, {"status": "ready"})
 
     app.include_router(router)
+    if tutor_is_enabled:
+        project_root = Path(__file__).resolve().parents[3]
+        load_dotenv(project_root / ".env.local")
+        load_dotenv(project_root / ".env", override=False)
+        from services.oral_assessment.integration import install_tutor_modules
+
+        install_tutor_modules(app, project_root=project_root)
     return app
 
 
@@ -128,6 +170,11 @@ def register_error_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(request: Request, exc: RequestValidationError):
+        if request.url.path == "/v1" or request.url.path.startswith("/v1/"):
+            return JSONResponse(
+                status_code=422,
+                content={"detail": jsonable_encoder(exc.errors())},
+            )
         details = [
             {
                 "location": [str(part) for part in item.get("loc", [])],
@@ -148,6 +195,8 @@ def register_error_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(StarletteHTTPException)
     async def http_error(request: Request, exc: StarletteHTTPException):
+        if request.url.path == "/v1" or request.url.path.startswith("/v1/"):
+            return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
         message = exc.detail if isinstance(exc.detail, str) else "Request failed."
         return JSONResponse(
             status_code=exc.status_code,

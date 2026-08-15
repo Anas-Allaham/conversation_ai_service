@@ -7,7 +7,13 @@ import pytest
 from pydantic import ValidationError
 
 from conversation_ai.config import Settings
-from conversation_ai.metadata import JobMetadataError, parse_job_metadata
+from conversation_ai.metadata import (
+    JobMetadataError,
+    parse_job_metadata,
+    parse_worker_job_metadata,
+    stable_session_id,
+    stable_subject_id,
+)
 from conversation_ai.persistence.database import normalize_database_url
 
 
@@ -51,6 +57,47 @@ def test_dispatch_metadata_is_strict_and_versioned() -> None:
     payload["unknown"] = True
     with pytest.raises(JobMetadataError, match="Invalid dispatch metadata"):
         parse_job_metadata(json.dumps(payload), production=True)
+
+
+def test_worker_accepts_integrated_practice_dispatch_metadata() -> None:
+    payload = {
+        "conversation_mode": "guided",
+        "practice_session_id": "guided-example",
+        "guided_session_id": "guided-example",
+        "user_id": "learner@example",
+    }
+    parsed = parse_worker_job_metadata(json.dumps(payload), production=True)
+    assert parsed.source == "practice-api"
+    assert parsed.conversation_mode == "guided"
+    assert parsed.session.session_id == stable_session_id("guided-example")
+    assert parsed.session.subject_id == stable_subject_id("learner@example")
+    assert parsed.session.guided_session_id == "guided-example"
+
+
+def test_worker_keeps_existing_team_dispatch_contract() -> None:
+    payload = {
+        "schema_version": 1,
+        "session_id": str(uuid.uuid4()),
+        "subject_id": str(uuid.uuid4()),
+        "locale": "en",
+    }
+    parsed = parse_worker_job_metadata(json.dumps(payload), production=True)
+    assert parsed.source == "conversation-api"
+    assert parsed.conversation_mode == "free"
+
+
+def test_guided_worker_metadata_is_strict() -> None:
+    with pytest.raises(JobMetadataError, match="guided_session_id"):
+        parse_worker_job_metadata(
+            json.dumps(
+                {
+                    "conversation_mode": "guided",
+                    "practice_session_id": "guided-example",
+                    "user_id": "learner",
+                }
+            ),
+            production=True,
+        )
 
 
 def test_agent_environment_lists_missing_values_without_secrets() -> None:

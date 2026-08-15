@@ -17,6 +17,11 @@ COPY src ./src
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev --extra agent
 
+# Guided mode uses this voice offline at runtime.
+RUN mkdir -p /app/data/piper && \
+    uv run --no-sync python -m piper.download_voices \
+      --data-dir /app/data/piper en_US-lessac-medium
+
 # Download Silero/plugin assets into the immutable image, not at runtime.
 RUN uv run --no-sync python -m livekit.agents download-files
 
@@ -36,4 +41,5 @@ COPY --from=builder --chown=appuser:appuser /app /app
 USER appuser
 
 EXPOSE 8081
-CMD ["python", "src/agent.py", "start"]
+ENV WORKER_ROLE=tutor
+CMD ["python", "src/worker_entrypoint.py", "start"]

@@ -54,6 +54,14 @@ async def capabilities(request: Request):
                 "retention": "until-deleted",
             },
             "job_metadata_schema_version": 1,
+            "practice_modes": ["free", "guided"],
+            "placement_assessment": True,
+            "guided_practice": {
+                "deterministic": True,
+                "domains": ["restaurant", "airport"],
+                "tts": "piper-local",
+            },
+            "fluency_observations": True,
         },
     )
 

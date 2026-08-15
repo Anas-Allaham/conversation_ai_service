@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     deepgram_api_key: SecretStr = SecretStr("")
     database_url: SecretStr = SecretStr("")
     service_api_key: SecretStr = SecretStr("")
+    tutor_enabled: bool = True
+    tutor_required: bool = True
 
     livekit_llm_model: str = "google/gemini-2.5-flash-lite"
     deepgram_tts_model: str = "aura-2-andromeda-en"

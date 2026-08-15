@@ -1,0 +1,2 @@
+{"case_id":"a1-clear-pass","target_level":"A1","prompt_kind":"main","transcript":"I get up at seven. I wash my face, eat bread and cheese, and then I go to university.","expected":{"task_achievement":3,"interactive_communication":3,"meaning_blocked":false,"decision":"pass"},"note":"Original synthetic case; not a human validation sample."}
+

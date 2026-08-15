@@ -15,6 +15,11 @@ down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
+JSON_DOCUMENT = sa.JSON().with_variant(
+    postgresql.JSONB(astext_type=sa.Text()),
+    "postgresql",
+)
+
 
 def upgrade() -> None:
     op.create_table(
@@ -28,9 +33,9 @@ def upgrade() -> None:
         sa.Column("livekit_room_sid", sa.String(length=128), nullable=True),
         sa.Column("room_name", sa.String(length=255), nullable=False),
         sa.Column("status", sa.String(length=24), nullable=False),
-        sa.Column("dispatch_metadata", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-        sa.Column("model_usage", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
-        sa.Column("final_report", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        sa.Column("dispatch_metadata", JSON_DOCUMENT, nullable=False),
+        sa.Column("model_usage", JSON_DOCUMENT, nullable=True),
+        sa.Column("final_report", JSON_DOCUMENT, nullable=True),
         sa.Column("error_type", sa.String(length=255), nullable=True),
         sa.Column("error_message", sa.Text(), nullable=True),
         sa.Column("started_at", sa.DateTime(timezone=True), nullable=False),
@@ -38,13 +43,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.func.now(),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.func.now(),
             nullable=False,
         ),
         sa.CheckConstraint(
@@ -66,12 +71,12 @@ def upgrade() -> None:
         sa.Column("session_id", sa.Uuid(), nullable=False),
         sa.Column("sequence", sa.Integer(), nullable=False),
         sa.Column("event_type", sa.String(length=64), nullable=False),
-        sa.Column("payload", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
+        sa.Column("payload", JSON_DOCUMENT, nullable=False),
         sa.Column("occurred_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.func.now(),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -95,18 +100,18 @@ def upgrade() -> None:
         sa.Column("role", sa.String(length=24), nullable=False),
         sa.Column("text", sa.Text(), nullable=False),
         sa.Column("interrupted", sa.Boolean(), nullable=False),
-        sa.Column("metrics", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
+        sa.Column("metrics", JSON_DOCUMENT, nullable=False),
         sa.Column("occurred_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.func.now(),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.func.now(),
             nullable=False,
         ),
         sa.CheckConstraint(

@@ -19,3 +19,5 @@ console-recordings/
 *.ogg
 livekit.toml.local
 
+data/piper/
+*.db
