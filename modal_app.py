@@ -57,7 +57,7 @@ def migrate() -> None:
     image=runtime_image,
     secrets=runtime_secrets,
     timeout=300,
-    scaledown_window=60,
+    scaledown_window=600,
     max_containers=10,
 )
 @modal.asgi_app()
